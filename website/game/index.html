@@ -8,7 +8,7 @@
 </head>
 
 <div id="body">
-  <img draggable="false" src="images/gameBackground.png" id="bgimg">
+  <img draggable="false" src="images/gameBackground.jpg" id="bgimg">
   <img draggable="false" src="images/desk.png" title="Take +1 Card" id="cardstack" onclick="CardStackClick()">
   <img draggable="false" src="images/table.png" id="table">
 
@@ -22,6 +22,9 @@
   <script>
     //Connect to socket
     var socket = io.connect();
+
+    //Create audio
+    var audio = new Audio('game/card_dropped.mp3');
 
     let MouseDownOffsetX = 0;
     let MouseDownOffsetY = 0;
@@ -196,6 +199,9 @@
 
     //Spawn dropped card in stack
     socket.on("drop", function(data) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.play();
       CreateDeskCard(data, "images/cards/" + data + ".png");
     });
 
