@@ -114,6 +114,7 @@ io.sockets.on('connection', socket => {
         var avatarURL = "avatars\\" + MakeID(32) + ".png";
         var image = data.replace(/^data:image\/\w+;base64,/, "");
         var buffer = new Buffer(image, 'base64');
+        if (!fs.existsSync("website\\avatars")) { fs.mkdirSync("website\\avatars"); }
         fs.writeFileSync("website\\" + avatarURL, buffer);
         socket.emit("avatar", avatarURL);
     });
