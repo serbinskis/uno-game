@@ -216,8 +216,6 @@ function MakeID(length) {
 
 //Get IPV4 Address
 function IPV4Address() {
-    return "127.0.0.1";
-
     var address, ifaces = require('os').networkInterfaces();
     for (var dev in ifaces) {
         ifaces[dev].filter((details) => details.family === 'IPv4' && details.internal === false ? address = details.address: undefined);
