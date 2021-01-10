@@ -225,7 +225,7 @@ function IPV4Address() {
 }
 
 
-//Get coockie from string
+//Get cookie from string
 function GetCookie(Name, Cookie) {
     var search = Name + "=";
     var ca = Cookie.split(";");

@@ -42,7 +42,6 @@
 
       var avatarElement = document.createElement("img");
       avatarElement.className = "avatar";
-      avatarElement.id = "avatar_" + id;
       avatarElement.draggable = false;
       avatarElement.width = 64;
       avatarElement.height = 64;
@@ -70,6 +69,7 @@
 
       img.addEventListener("click", CardDeskClick, false);
       document.getElementById("cards-desk").appendChild(img);
+      DropDown(img, 50);
     }
 
     //Create card on screen
@@ -146,6 +146,20 @@
 
       let leftAmount = e.clientX - MouseDownOffsetX;
       e.target.style.left = leftAmount + 'px';
+    }
+
+    //Animation for cards
+    function DropDown(object, SizeBy) {
+      if (SizeBy <= 0) {
+        object.style = "";
+        return;
+      }
+
+      object.style.top = SizeBy + "%";
+      object.style.left = -(SizeBy/2) + "%";
+      object.style.width = 100 + SizeBy + "%";
+      object.style.height = 100 + SizeBy + "%";
+      setTimeout(DropDown, 2, object, SizeBy-2);
     }
 
 

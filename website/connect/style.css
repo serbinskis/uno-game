@@ -4,6 +4,7 @@
   margin: auto;
   padding: 100px 10px;
   user-select: none;
+  cursor: url(../images/arrow.png), auto;
 }
 
 #bgimg {
@@ -32,6 +33,7 @@
   width: calc(100% - 42px);
   float: right;
   border-radius: 0px 4px 4px 0px;
+  cursor: url(../images/arrow.png), auto;
 }
 
 .loginIcon {
@@ -49,7 +51,6 @@
 .avatar {
   display: block;
   margin: auto;
-  cursor: pointer;
   margin-top: -5px;
   width: 130px;
   height: 130px;
@@ -100,4 +101,5 @@ input[type=submit] {
   font-family: 'Source Sans Pro', sans-serif;
   font-weight: 900;
   font-size: 14px;
+  cursor: url(../images/arrow.png), auto;
 }

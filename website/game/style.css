@@ -7,6 +7,7 @@ body {
   user-select: none;
   overflow: hidden;
   font-family: Uni_Sans_Heavy;
+  cursor: url(../images/arrow.png), auto;
 }
 
 #bgimg {
@@ -27,7 +28,6 @@ body {
   left: 10px;
   width: 155px;
   height: 130px;
-  cursor: pointer;
 }
 
 #table {
@@ -71,6 +71,7 @@ body {
   vertical-align: middle;
   line-height: 60px;
   padding-top: 5px;
+  cursor: url(../images/arrow.png), auto;
 }
 
 .count {
@@ -80,6 +81,7 @@ body {
   width: 37px;
   line-height: 60px;
   padding-top: 5px;
+  cursor: url(../images/arrow.png), auto;
 }
 
 .card {
@@ -87,7 +89,6 @@ body {
   position: absolute;
   width: 90px;
   height: 140px;
-  cursor: pointer;
 }
 
 #cards-desk {
@@ -106,5 +107,4 @@ body {
   width: 90px;
   height: 140px;
   filter: drop-shadow(5px 5px 5px #222);
-  cursor: pointer;
 }
