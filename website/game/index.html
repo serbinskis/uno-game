@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en" crosspilot="">
+<head>
+  <title>UNO Game</title>
+  <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+  <link href="game/style.css" rel="stylesheet">
+</head>
+
+<div id="body">
+  <img draggable="false" src="images/gameBackground.png" id="bgimg">
+  <img draggable="false" src="images/desk.png" title="Take +1 Card" id="cardstack" onclick="CardStackClick()">
+  <img draggable="false" src="images/table.png" id="table">
+
+  <div id="cards-desk">
+    <img draggable="false" src="images/cards/UNO_CARD.png" class="card-desk" id="UNO_CARD" onclick="StartGame()">
+  </div>
+
+  <div id="players"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    //Connect to socket
+    var socket = io.connect();
+
+    let MouseDownOffsetX = 0;
+    let MouseDownOffsetY = 0;
+    let zIndex = 0;
+
+    //Add player to list
+    function CreatePlayer(username, id, src, count) {
+      var divElement = document.createElement("div");
+      divElement.className = "player";
+      divElement.id = id;
+      
+      var usernameElement = document.createElement("label");
+      usernameElement.className = "username";
+      usernameElement.innerHTML = username;
+
+      var avatarElement = document.createElement("img");
+      avatarElement.className = "avatar";
+      avatarElement.id = "avatar_" + id;
+      avatarElement.draggable = false;
+      avatarElement.width = 64;
+      avatarElement.height = 64;
+      avatarElement.src = src;
+
+      var countElement = document.createElement("label");
+      countElement.className = "count";
+      countElement.id = "count_" + id;
+      countElement.innerHTML = count;
+
+      divElement.appendChild(usernameElement);
+      divElement.appendChild(avatarElement);
+      divElement.appendChild(countElement);
+      document.getElementById("players").appendChild(divElement);
+    }
+
+    //Create card on desk
+    function CreateDeskCard(id, src) {
+      var img = document.createElement("img");
+
+      img.className = "card-desk";
+      img.id = id;
+      img.src = src;
+      img.draggable = false;
+
+      img.addEventListener("click", CardDeskClick, false);
+      document.getElementById("cards-desk").appendChild(img);
+    }
+
+    //Create card on screen
+    function CreateCard(id, src, top, left) {
+      var img = document.createElement("img");
+      zIndex++;
+
+      img.className = "card";
+      img.id = id;
+      img.src = src;
+      img.style.top = top + "px";
+      img.style.left = left + "px";
+      img.style.zIndex = zIndex;
+      img.ondragstart = function() {return false;}
+
+      img.addEventListener("mousedown", mouseDown, false);
+      window.addEventListener("mouseup", mouseUp, false);
+      document.getElementById("body").appendChild(img);
+    }
+
+    //Detect mouse up
+    function mouseUp(e) {
+      window.removeEventListener("mousemove", imgMove, true);
+
+      //If first card exists then return
+      if (document.getElementById("UNO_CARD")) {
+        return;
+      }
+
+      //If card is on desk then remove it and send to socket
+      if (e.target.className == "card") {
+        var rectImg = e.target.getBoundingClientRect();
+        var rectDesk = document.getElementsByClassName("card-desk")[0].getBoundingClientRect();
+
+        var overlap = !(
+          ((rectImg.top + rectImg.height) < (rectDesk.top)) ||
+          (rectImg.top > (rectDesk.top + rectDesk.height)) ||
+          ((rectImg.left + rectImg.width) < rectDesk.left) ||
+          (rectImg.left > (rectDesk.left + rectDesk.width))
+        );
+
+        if (overlap) {
+          socket.emit("drop", e.target.id);
+          e.target.remove();
+        }
+      }
+    }
+
+    //Detect mouse down
+    function mouseDown(e) {
+      let leftPart = e.target.style.left
+      let leftPos = leftPart.indexOf("px");
+      let leftNumString = leftPart.slice(0, leftPos);
+      MouseDownOffsetX = e.clientX - parseInt(leftNumString, 10);
+
+      let topPart = e.target.style.top;
+      let topPos = topPart.indexOf("px");
+      let topNumString = topPart.slice(0, topPos);
+      MouseDownOffsetY = e.clientY - parseInt(topNumString, 10);
+
+      zIndex++;
+      e.target.style.zIndex = zIndex;
+      window.addEventListener('mousemove', imgMove, true);
+    }
+
+    //Move image with cursor
+    function imgMove(e){
+      if (e.target.className != "card") {
+        return;
+      }
+
+      let topAmount = e.clientY - MouseDownOffsetY;
+      e.target.style.top = topAmount + 'px';
+
+      let leftAmount = e.clientX - MouseDownOffsetX;
+      e.target.style.left = leftAmount + 'px';
+    }
+
+
+    //
+    //Deal with sockets
+    //
+
+    //Start game when pressing on middle card
+    function StartGame() {
+      socket.emit("start");
+    }
+
+    //Generate new card when pressing on card stack
+    function CardStackClick() {
+      socket.emit("card");
+    }
+
+    function CardDeskClick() {
+      var CardsDesk = document.getElementsByClassName("card-desk")
+      if (CardsDesk.length <= 1) { return; }
+      socket.emit("grab", CardsDesk[CardsDesk.length-1].id);
+    }
+
+    //When player joined the game send him user list
+    socket.on("players", function(data) {
+      for (var i = 0; i < data.length; i++) {
+        CreatePlayer(data[i].username, data[i].uid, data[i].avatar, data[i].count);
+      }
+    });
+
+    //Send info about new player to already joined players
+    socket.on("join", function(data) {
+      CreatePlayer(data.username, data.uid, data.avatar, data.count);
+    });
+
+    //Remove player
+    socket.on("left", function(data) {
+      document.getElementById(data).remove();
+    });
+
+    //Spawn first card in stack
+    socket.on("start", function(data) {
+      document.getElementById("UNO_CARD").remove();
+      CreateDeskCard(data, "images/cards/" + data + ".png");
+    });
+
+    //Spawn generated card
+    socket.on("card", function(data) {
+      CreateCard(data, "images/cards/" + data + ".png", 5, 40);
+    });
+
+    //Spawn dropped card in stack
+    socket.on("drop", function(data) {
+      CreateDeskCard(data, "images/cards/" + data + ".png");
+    });
+
+    //Spawn dropped card in stack
+    socket.on("count", function(data) {
+      document.getElementById("count_" + data.uid).innerHTML = data.count;
+    });
+
+    //Remove card from top of desk
+    socket.on("grab", function() {
+      var CardsDesk = document.getElementsByClassName("card-desk")
+      CardsDesk[CardsDesk.length-1].remove();
+    });
+
+    socket.emit("players");
+  </script>
+</div>
+</html>

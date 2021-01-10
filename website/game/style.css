@@ -1,0 +1,110 @@
+﻿@font-face {
+  font-family: Uni_Sans_Heavy;
+  src: url(Uni_Sans_Heavy.otf);
+}
+
+body {
+  user-select: none;
+  overflow: hidden;
+  font-family: Uni_Sans_Heavy;
+}
+
+#bgimg {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  background-size: cover;
+  z-index: -1;
+}
+
+#cardstack {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 155px;
+  height: 130px;
+  cursor: pointer;
+}
+
+#table {
+  position: absolute;
+  width: 300px;
+  height: 260px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#players {
+  /* border: 2px solid green; */
+  position: relative;
+  text-align: right;
+  padding-top: 10px;
+  float: right;
+  height: 100%;
+}
+
+.player {
+  /* border: 2px solid red; */
+  text-align: right;
+  vertical-align: middle;
+  line-height: 60px;
+}
+
+.avatar {
+  /* border: 2px solid blue; */
+  text-align: center;
+  vertical-align: middle;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  line-height: 60px;
+}
+
+.username {
+  /* border: 2px solid purple; */
+  text-align: center;
+  vertical-align: middle;
+  line-height: 60px;
+  padding-top: 5px;
+}
+
+.count {
+  /* border: 2px solid yellow; */
+  display: inline-block;
+  text-align: center;
+  width: 37px;
+  line-height: 60px;
+  padding-top: 5px;
+}
+
+.card {
+  /* border: 2px solid aqua; */
+  position: absolute;
+  width: 90px;
+  height: 140px;
+  cursor: pointer;
+}
+
+#cards-desk {
+  /* border: 2px solid orange; */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 140px;
+}
+
+.card-desk {
+  /* border: 2px solid aqua; */
+  position: absolute;
+  width: 90px;
+  height: 140px;
+  filter: drop-shadow(5px 5px 5px #222);
+  cursor: pointer;
+}
