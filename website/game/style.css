@@ -1,110 +1,137 @@
 ﻿@font-face {
-  font-family: Uni_Sans_Heavy;
-  src: url(Uni_Sans_Heavy.otf);
+    font-family: Uni_Sans_Heavy;
+    src: url(../resources/Uni_Sans_Heavy.otf);
 }
 
 body {
-  user-select: none;
-  overflow: hidden;
-  font-family: Uni_Sans_Heavy;
-  cursor: url(../images/arrow.png), auto;
+    user-select: none;
+    overflow: hidden;
+    font-family: Uni_Sans_Heavy;
+    cursor: url(../resources/arrow.png), auto;
 }
 
 #bgimg {
-  position: fixed;
-  top: 0px;
-  left: 0px;
-  min-width: 100%;
-  min-height: 100%;
-  width: auto;
-  height: auto;
-  background-size: cover;
-  z-index: -1;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    background-size: cover;
+    z-index: -1;
 }
 
 #cardstack {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  width: 155px;
-  height: 130px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: 155px;
+    height: 130px;
 }
 
 #table {
-  position: absolute;
-  width: 300px;
-  height: 260px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+    position: absolute;
+    width: 300px;
+    height: 260px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
-#players {
-  /* border: 2px solid green; */
-  position: relative;
-  text-align: right;
-  padding-top: 10px;
-  float: right;
-  height: 100%;
-}
-
-.player {
-  /* border: 2px solid red; */
-  text-align: right;
-  vertical-align: middle;
-  line-height: 60px;
-}
-
-.avatar {
-  /* border: 2px solid blue; */
-  text-align: center;
-  vertical-align: middle;
-  margin-left: 10px;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  line-height: 60px;
-}
-
-.username {
-  /* border: 2px solid purple; */
-  text-align: center;
-  vertical-align: middle;
-  line-height: 60px;
-  padding-top: 5px;
-  cursor: url(../images/arrow.png), auto;
-}
-
-.count {
-  /* border: 2px solid yellow; */
-  display: inline-block;
-  text-align: center;
-  width: 37px;
-  line-height: 60px;
-  padding-top: 5px;
-  cursor: url(../images/arrow.png), auto;
+#cards {
+    /* border: 2px solid orange; */
+    position: absolute;
+    width: 50%;
+    bottom: 15px;
+    right: 25%;
+    left: calc(50% + 2.5rem);
+    margin-left: -25%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .card {
-  /* border: 2px solid aqua; */
-  position: absolute;
-  width: 90px;
-  height: 140px;
+    /* border: 2px solid aqua; */
+    width: 90px;
+    height: 140px;
+    margin-left: -3.5rem;
+}
+
+.card:hover {
+    transition: 0.2s;
+    transform: translateY(-1rem);
+}
+
+.card:hover ~ .card {
+    transition: 0.2s;
+    transform: translateX(3rem);
+}
+
+#players {
+    /* border: 2px solid green; */
+    position: relative;
+    text-align: right;
+    padding-top: 10px;
+    float: right;
+    height: 100%;
+}
+
+.player {
+    /* border: 2px solid red; */
+    text-align: right;
+    vertical-align: middle;
+    line-height: 60px;
+}
+
+.avatar {
+    /* border: 2px solid blue; */
+    text-align: center;
+    vertical-align: middle;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    line-height: 60px;
+}
+
+.username {
+    /* border: 2px solid purple; */
+    text-align: center;
+    vertical-align: middle;
+    line-height: 60px;
+    padding-top: 5px;
+    cursor: url(../resources/arrow.png), auto;
+}
+
+.glow {
+    text-shadow: 0px 0px 20px #FEED7A, 0px 0px 20px #FEED7A, 0px 0px 20px #FEED7A;
+}
+
+.count {
+    /* border: 2px solid yellow; */
+    display: inline-block;
+    text-align: center;
+    width: 37px;
+    line-height: 60px;
+    padding-top: 5px;
+    cursor: url(../resources/arrow.png), auto;
 }
 
 #cards-desk {
-  /* border: 2px solid orange; */
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 90px;
-  height: 140px;
+    /* border: 2px solid orange; */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px;
+    height: 140px;
 }
 
 .card-desk {
-  /* border: 2px solid aqua; */
-  position: absolute;
-  width: 90px;
-  height: 140px;
-  filter: drop-shadow(5px 5px 5px #222);
+    /* border: 2px solid aqua; */
+    position: absolute;
+    width: 90px;
+    height: 140px;
+    filter: drop-shadow(5px 5px 5px #222);
 }
