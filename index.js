@@ -72,13 +72,15 @@ const Cards = {
     cover: "UNO_CARD"
 }
 
-//List varieables
+//Some variables
 var GameStarted = false;
 var CurrentMove = "";
 var Reverse = 1;
 var Players = [];
 
-//Some constants and variables
+//Some constants
+const MAX_PLAYERS = 10;
+const MAX_CARDS = 100;
 const PORT = 80;
 
 
@@ -98,7 +100,7 @@ app.get('/', function(req, res) {
     console.log(`Cookie: ${Cookie}`);
     
     //Load needed page
-    if (Cookie.includes("connected=true") && !GameStarted && (Players.length < 10)) {
+    if (Cookie.includes("connected=true") && !GameStarted && (Players.length < MAX_PLAYERS)) {
         res.sendFile(__dirname + '/website/game/index.html');
     } else {
         res.sendFile(__dirname + '/website/connect/index.html');
@@ -108,6 +110,7 @@ app.get('/', function(req, res) {
 
 //When someone connects
 io.sockets.on('connection', socket => {
+    //Save and send avatar url
     socket.on("avatar", data => {
         var avatarURL = "avatars\\" + MakeID(32) + ".png";
         var image = data.replace(/^data:image\/\w+;base64,/, "");
@@ -117,14 +120,15 @@ io.sockets.on('connection', socket => {
         socket.emit("avatar", avatarURL);
     });
 
+    //Connect player
     socket.on("join", data => {
         if (GameStarted) {
             socket.emit("alert", "Game already started!");
             return;
         }
 
-        if (Players.length >= 10) {
-            socket.emit("alert", "Max players 10/10!");
+        if (Players.length >= MAX_PLAYERS) {
+            socket.emit("alert", `Max players ${MAX_PLAYERS}/${MAX_PLAYERS}!`);
             return;
         }
 
@@ -135,6 +139,7 @@ io.sockets.on('connection', socket => {
         socket.emit("reload");
     });
 
+    //Disconnect player
     socket.on("disconnect", function() {
         var Cookie = socket.handshake.headers.cookie || "";
         var Username = GetCookie("username", Cookie);
@@ -156,16 +161,19 @@ io.sockets.on('connection', socket => {
         console.log(`\n${Username} disconnect.`);
      });
 
+    //Send player list
     socket.on("players", function() {
         socket.emit("players", Players);
     });
 
+    //Restart game
     socket.on("restart", function() {
         Players = [];
         GameStarted = false;
         io.sockets.emit("reload");
     });
 
+    //Start game
     socket.on("start", function() {
         if (GameStarted) { return; }
         GameStarted = true;
@@ -174,22 +182,37 @@ io.sockets.on('connection', socket => {
         io.sockets.emit("next", CurrentMove); //Chnage focus to specific player
     });
 
+    //When taking +1 card
     socket.on("card", function() {
+        var Cookie = socket.handshake.headers.cookie;
+
+        if (Players[FindPlayer(Cookie)].count >= MAX_CARDS) {
+            return;
+        }
+
         socket.emit("card", GenerateCard(true));
-        ChangeCount(socket.handshake.headers.cookie, 1);
+        ChangeCount(Cookie, 1);
     });
 
+    //When placing card
     socket.on("drop", data => {
         io.sockets.emit("drop", data);
-        CheckNext(socket.handshake.headers.cookie, data, "drop");
+        ChangeNext(socket.handshake.headers.cookie, data, "drop");
         ChangeCount(socket.handshake.headers.cookie, -1);
     });
 
+    //When taking card back from stack
     socket.on("grab", data => {
+        var Cookie = socket.handshake.headers.cookie;
+
+        if (Players[FindPlayer(Cookie)].count >= MAX_CARDS) {
+            return;
+        }
+
         socket.emit("card", data);
         io.sockets.emit("grab");
-        CheckNext(socket.handshake.headers.cookie, data, "grab");
-        ChangeCount(socket.handshake.headers.cookie, 1);
+        ChangeNext(Cookie, data, "grab");
+        ChangeCount(Cookie, 1);
     });
 })
 
@@ -204,7 +227,9 @@ process.title = "UNO Game";
 
 
 //Find player index from list
-function FindPlayer(UID) {
+function FindPlayer(Cookie) {
+    var UID = GetCookie("uid", Cookie);
+
     for (var i = 0; i <= Players.length-1; i++) {
         if (Players[i].uid == UID) {
             return i;
@@ -213,9 +238,27 @@ function FindPlayer(UID) {
 }
 
 
-//Change next player
-function ChangeNext(UID, By) {
-    var Index = FindPlayer(UID);
+//Change to next player
+function ChangeNext(Cookie, Card, Operation) {
+    var Index = FindPlayer(Cookie);
+
+    if (Card.includes("REVERSE")) {
+        Reverse = Reverse * -1;
+        io.sockets.emit("reverse", Reverse);
+    };
+
+    if (Players.length <= 1) { return; }
+
+    if (Card.includes("BLOCK")) {
+        var By = 2;
+    } else {
+        var By = 1;
+    }
+
+    if (Operation == "grab") {
+        By = 0;
+    }
+
     By = By * Reverse;
     Index += By;
 
@@ -233,32 +276,9 @@ function ChangeNext(UID, By) {
 
 
 //Change count of player
-function CheckNext(Cookie, Card, Operation) {
-    if (Players.length <= 1) { return; }
-    var UID = GetCookie("uid", Cookie);
-
-    if (Card.includes("REVERSE")) {
-        Reverse = Reverse * -1;
-    };
-
-    if (Card.includes("BLOCK")) {
-        var By = 2;
-    } else {
-        var By = 1;
-    }
-
-    if (Operation == "grab") {
-        ChangeNext(UID, 0);
-    } else {
-        ChangeNext(UID, By);
-    }
-}
-
-
-//Change count of player
 function ChangeCount(Cookie, By) {
+    var Index = FindPlayer(Cookie);
     var UID = GetCookie("uid", Cookie);
-    var Index = FindPlayer(UID);
     Players[Index].count += By;
     io.sockets.emit("count", {"uid": UID, "count": Players[Index].count});
 }
@@ -292,13 +312,15 @@ function GetCookie(Name, Cookie) {
     var ca = Cookie.split(";");
 
     for(var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == " ") {
-        c = c.substring(1);
-      }
-      if (c.indexOf(search) == 0) {
-        return c.substring(search.length, c.length);
-      }
+        var c = ca[i];
+
+        while (c.charAt(0) == " ") {
+            c = c.substring(1);
+        }
+
+        if (c.indexOf(search) == 0) {
+            return c.substring(search.length, c.length);
+        }
     }
 
     return "";

@@ -1,6 +1,24 @@
 ﻿@font-face {
     font-family: Uni_Sans_Heavy;
-    src: url(../resources/Uni_Sans_Heavy.otf);
+    src: url(../resources/fonts/Uni_Sans_Heavy.otf);
+}
+
+@keyframes rotationR {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(359deg);
+    }
+}
+
+@keyframes rotationL {
+    from {
+        transform: rotate(359deg);
+    }
+    to {
+        transform: rotate(0deg);
+    }
 }
 
 body {
@@ -69,38 +87,54 @@ body {
     transform: translateX(3rem);
 }
 
-#players {
-    /* border: 2px solid green; */
+.directionR {
+    animation: rotationR 2s infinite linear;
+}
+
+.directionL {
+    animation: rotationL 2s infinite linear;
+}
+
+.arrow {
     position: relative;
     text-align: right;
-    padding-top: 10px;
     float: right;
-    height: 100%;
+    margin-right: 44px;
+    
+}
+
+#players {
+    /* border: 2px solid green; */
+    position: absolute;
+    top: 10px;
+    right: 5px;
 }
 
 .player {
     /* border: 2px solid red; */
+    position: relative;
     text-align: right;
-    vertical-align: middle;
-    line-height: 60px;
 }
 
 .avatar {
     /* border: 2px solid blue; */
-    text-align: center;
     vertical-align: middle;
     margin-left: 10px;
     margin-right: 10px;
     margin-bottom: 10px;
-    line-height: 60px;
 }
 
 .username {
     /* border: 2px solid purple; */
-    text-align: center;
     vertical-align: middle;
-    line-height: 60px;
-    padding-top: 5px;
+    cursor: url(../resources/arrow.png), auto;
+}
+
+.count {
+    /* border: 2px solid yellow; */
+    display: inline-block;
+    text-align: center;
+    width: 37px;
     cursor: url(../resources/arrow.png), auto;
 }
 

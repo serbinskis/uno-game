@@ -1,12 +1,73 @@
 //Connect to socket
 var socket = io.connect();
 
-//Create audio
-var audio1 = new Audio('resources/card_placed.mp3');
-
 //Make some variables and constants
 const DELAY = 100;
 var SavedDate = new Date();
+
+//Play audio
+function PlaySound(FileName) {
+    var audio = new Audio(FileName);
+    audio.pause();
+    audio.currentTime = 0;
+    audio.play();
+}
+
+//Animation for cards
+function DropDown(object, SizeBy) {
+    if (SizeBy <= 0) {
+        object.style = null;
+        return;
+    }
+
+    object.style.top = SizeBy + "%";
+    object.style.left = -(SizeBy/2) + "%";
+    object.style.width = 100 + SizeBy + "%";
+    object.style.height = 100 + SizeBy + "%";
+    setTimeout(DropDown, 2, object, SizeBy-2);
+}
+
+//Animation for player join
+function SlideLeft(object, SizeBy) {
+    if (SizeBy <= 0) {
+        object.style = null;
+        return;
+    }
+
+    object.style.left = SizeBy + "%";
+    setTimeout(SlideLeft, 1, object, SizeBy-2);
+}
+
+//Animation for player leave
+function SlideRigth(object, SizeBy) {
+    var leftString = object.style.left || "0%";
+    var leftInteger = Number(leftString.slice(0, -1));
+
+    if (leftInteger >= SizeBy) {
+        object.remove();
+        UpdateArrowLocation();
+        return;
+    }
+    
+    object.style.left = (leftInteger+2) + "%";
+    setTimeout(SlideRigth, 1, object, SizeBy);
+}
+
+//Check delay so players don't spam click
+function CheckDelay(Delay) {
+    if ((new Date().getTime() - SavedDate.getTime()) > Delay) {
+        SavedDate = new Date();
+        return true;
+    }
+
+    return false;
+}
+
+//Update arrow location
+function UpdateArrowLocation() {
+    var arrow = document.getElementById("arrow");
+    arrow.style.top = (document.getElementsByClassName("player").length) * 74 + 7 + "px";
+}
 
 //Add player to list
 function CreatePlayer(username, id, src, count) {
@@ -35,6 +96,8 @@ function CreatePlayer(username, id, src, count) {
     divElement.appendChild(avatarElement);
     divElement.appendChild(countElement);
     document.getElementById("players").appendChild(divElement);
+    UpdateArrowLocation();
+    SlideLeft(divElement, 105);
 }
 
 //Create card on desk
@@ -62,30 +125,6 @@ function CreateCard(id, src) {
 
     img.addEventListener("click", CardClick, false);
     document.getElementById("cards").appendChild(img);
-}
-
-//Animation for cards
-function DropDown(object, SizeBy) {
-    if (SizeBy <= 0) {
-        object.style = null;
-        return;
-    }
-
-    object.style.top = SizeBy + "%";
-    object.style.left = -(SizeBy/2) + "%";
-    object.style.width = 100 + SizeBy + "%";
-    object.style.height = 100 + SizeBy + "%";
-    setTimeout(DropDown, 2, object, SizeBy-2);
-}
-
-//Check delay so players don't spam click
-function CheckDelay(Delay) {
-    if ((new Date().getTime() - SavedDate.getTime()) > Delay) {
-        SavedDate = new Date();
-        return true;
-    }
-
-    return false;
 }
 
 //Restart game (only from console)
@@ -137,13 +176,16 @@ socket.on("join", function(data) {
 
 //Remove player
 socket.on("left", function(data) {
-    document.getElementById(data).remove();
+    SlideRigth(document.getElementById(data), 105);
 });
 
 //Spawn first card in stack
 socket.on("start", function(data) {
     document.getElementById("UNO_CARD").remove();
+    PlaySound('resources/sounds/card_placed.mp3');
     CreateDeskCard(data, "resources/cards/" + data + ".png");
+    var arrow = document.getElementById("arrow");
+    arrow.style.visibility = null;
 });
 
 //Reload page on socket command 'reload'
@@ -158,9 +200,7 @@ socket.on("card", function(data) {
 
 //Spawn dropped card in stack
 socket.on("drop", function(data) {
-    audio1.pause();
-    audio1.currentTime = 0;
-    audio1.play();
+    PlaySound('resources/sounds/card_placed.mp3');
     CreateDeskCard(data, "resources/cards/" + data + ".png");
 });
 
@@ -171,7 +211,7 @@ socket.on("count", function(data) {
 
 //Focus specific player
 socket.on("next", function(data) {
-  var player = document.getElementsByClassName("username glow")[0]
+  var player = document.getElementsByClassName("username glow")[0];
 
   if (player) {
     player.className = "username";
@@ -182,8 +222,21 @@ socket.on("next", function(data) {
 
 //Remove card from top of desk
 socket.on("grab", function() {
-    var CardsDesk = document.getElementsByClassName("card-desk")
+    var CardsDesk = document.getElementsByClassName("card-desk");
     CardsDesk[CardsDesk.length-1].remove();
+});
+
+//Change arrow animation
+socket.on("reverse", function(data) {
+    var arrow = document.getElementById("arrow");
+
+    if (data > 0) {
+        arrow.src = "resources/directionR.png";
+        arrow.className = "arrow directionR";
+    } else {
+        arrow.src = "resources/directionL.png";
+        arrow.className = "arrow directionL";
+    }
 });
 
 socket.emit("players");

@@ -1,10 +1,19 @@
-﻿#body {
+﻿@font-face {
+    font-family: Uni_Sans_Heavy;
+    src: url(../resources/fonts/Uni_Sans_Heavy.otf);
+}
+
+body {
+    user-select: none;
+    overflow: hidden;
+    cursor: url(../resources/arrow.png), auto;
+}
+
+#body {
     max-width: 870px;
     min-height: 71%;
     margin: auto;
     padding: 100px 10px;
-    user-select: none;
-    cursor: url(../resources/arrow.png), auto;
 }
 
 #bgimg {
@@ -16,6 +25,13 @@
     width: auto;
     height: auto;
     background-size: cover;
+}
+
+#creator {
+    position: absolute;
+    font-family: "Lucida Console", "Courier New", monospace;
+    left: 10px;
+    bottom: 5px;
 }
 
 #user {
