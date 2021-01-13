@@ -1,6 +1,9 @@
 //Connect to socket
 var socket = io.connect();
 
+//Constants
+const MAX_AVATAR_SIZE = 950*1024;
+
  //Set coockie
 function SetCookie(Name, Value, Time) {
     var d = new Date();
@@ -30,45 +33,29 @@ function GetCookie(Name) {
 }
 
 //Upload avatar to server
-document.getElementById("avatarUpload").onchange = function(event) {
-  var avatarUpload = document.getElementById("avatarUpload");
-  var reader = new FileReader();
+function AvatarUpload() {
+    var input = document.createElement("input");
+    var reader = new FileReader();
 
-  reader.onloadend = async function(event) {
-      var canvas = document.createElement("canvas");
-      canvas.width = 130;
-      canvas.height = 130;
-      context = canvas.getContext("2d");
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.fillStyle = "black";
-      context.fillRect(13, 13, 104, 104);
-      var avatarImage = new Image();
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", ".png,.jpg,.jpeg,.bmp,.gif");
 
-      //Load frame image
-      avatarImage.onload = function () {
-          var frameImage = new Image();
-          frameImage.src = "resources/frame.png";
+    input.onchange = function(event) {
+        if (event.target.files[0].size > MAX_AVATAR_SIZE) {
+            input.remove();
+            alert(`File is too big!`);
+            return;
+        }
 
-          //Draw image
-          frameImage.onload = function () {
-              context.drawImage(avatarImage, 13, 13, 104, 104);
-              context.drawImage(frameImage, 0, 0);
-              socket.emit("avatar", canvas.toDataURL());
-          };
-      };
+        reader.readAsArrayBuffer(event.target.files[0]);
+    }
 
-      //Load avatar
-      avatarImage.src = event.target.result;
-  }
+    reader.onload = function(event) {
+        socket.emit("avatar", event.target.result);
+        input.remove();
+    }
 
-  //Read file
-  reader.readAsDataURL(this.files[0]);
-}
-
-//When clicking on canvas
-document.getElementById("avatar").onclick = function(event) {
-    var avatarUpload = document.getElementById("avatarUpload");
-    avatarUpload.click();
+    input.click();
 }
 
 //When clicking connect

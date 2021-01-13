@@ -9,6 +9,7 @@
   "author": "WobbyChip",
   "license": "ISC",
   "dependencies": {
+    "canvas": "^2.6.1",
     "express": "^4.17.1",
     "socket.io": "^3.0.5"
   }

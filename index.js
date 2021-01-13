@@ -1,7 +1,8 @@
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
-var fs = require('fs');
+const Canvas = require('canvas')
+const fs = require('fs');
 
 const Cards = {
     standart: [
@@ -111,12 +112,9 @@ app.get('/', function(req, res) {
 //When someone connects
 io.sockets.on('connection', socket => {
     //Save and send avatar url
-    socket.on("avatar", data => {
-        var avatarURL = "avatars\\" + MakeID(32) + ".png";
-        var image = data.replace(/^data:image\/\w+;base64,/, "");
-        var buffer = new Buffer(image, 'base64');
-        if (!fs.existsSync("website\\avatars")) { fs.mkdirSync("website\\avatars"); }
-        fs.writeFileSync("website\\" + avatarURL, buffer);
+    socket.on("avatar", async data => {
+        var avatarURL = await CreateAvatar(data);
+        if (!avatarURL) { return; }
         socket.emit("avatar", avatarURL);
     });
 
@@ -226,6 +224,30 @@ io.sockets.on('connection', socket => {
 process.title = "UNO Game";
 
 
+//Create avatar
+async function CreateAvatar(Buffer) {
+    try {
+        var avatarURL = "avatars\\" + MakeID(32) + ".png";
+        if (!fs.existsSync("website\\avatars")) { fs.mkdirSync("website\\avatars"); }
+
+        const frameImage = await Canvas.loadImage('website\\resources\\frame.png');
+        const avatarImage = await Canvas.loadImage(Buffer);
+        const canvas = Canvas.createCanvas(frameImage.width, frameImage.height);
+        const ctx = canvas.getContext('2d')
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(13, 13, 104, 104);
+        ctx.drawImage(avatarImage, 13, 13, 104, 104);
+        ctx.drawImage(frameImage, 0, 0);
+    
+        fs.writeFileSync("website\\" + avatarURL, canvas.toBuffer());
+        return avatarURL;
+    } catch(e) {
+        return;
+    }
+}
+
+
 //Find player index from list
 function FindPlayer(Cookie) {
     var UID = GetCookie("uid", Cookie);
@@ -295,14 +317,19 @@ function MakeID(length) {
 }
 
 
-//Get IPV4 Address
-function IPV4Address() {
-    var address, ifaces = require('os').networkInterfaces();
-    for (var dev in ifaces) {
-        ifaces[dev].filter((details) => details.family === 'IPv4' && details.internal === false ? address = details.address: undefined);
+//Generate random number between
+function RandomRange(min, max){
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+
+//Choose random card
+function GenerateCard(UseSpecial) {
+    if (UseSpecial && (RandomRange(1, 2) == 2)) {
+        return Cards.special[RandomRange(0, Cards.special.length-1)];
     }
 
-    return address;
+    return Cards.standart[RandomRange(0, Cards.standart.length-1)];
 }
 
 
@@ -327,19 +354,14 @@ function GetCookie(Name, Cookie) {
 }
 
 
-//Generate random number between
-function RandomRange(min, max){
-    return Math.floor(Math.random()*(max-min+1)+min);
-}
-
-
-//Choose random card
-function GenerateCard(UseSpecial) {
-    if (UseSpecial && (RandomRange(1, 2) == 2)) {
-        return Cards.special[RandomRange(0, Cards.special.length-1)];
+//Get IPV4 Address
+function IPV4Address() {
+    var address, ifaces = require('os').networkInterfaces();
+    for (var dev in ifaces) {
+        ifaces[dev].filter((details) => details.family === 'IPv4' && details.internal === false ? address = details.address: undefined);
     }
 
-    return Cards.standart[RandomRange(0, Cards.standart.length-1)];
+    return address;
 }
 
 
