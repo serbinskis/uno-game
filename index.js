@@ -188,6 +188,7 @@ io.sockets.on('connection', socket => {
             return;
         }
 
+        io.sockets.emit("sound", "card_pickup");
         socket.emit("card", GenerateCard(true));
         ChangeCount(Cookie, 1);
     });
@@ -207,6 +208,7 @@ io.sockets.on('connection', socket => {
             return;
         }
 
+        io.sockets.emit("sound", "card_pickup");
         socket.emit("card", data);
         io.sockets.emit("grab");
         ChangeNext(Cookie, data, "grab");

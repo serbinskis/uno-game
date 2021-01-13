@@ -193,6 +193,11 @@ socket.on("reload", function () {
     location.reload();
 });
 
+//Play specific sound
+socket.on("sound", function(data) {
+    PlaySound(`resources/sounds/${data}.mp3`);
+});
+
 //Spawn generated card
 socket.on("card", function(data) {
     CreateCard(data, "resources/cards/" + data + ".png");
