@@ -1,3 +1,4 @@
-node_modules/
-website/avatars/
+!node_modules/
+node_modules/*
+!node_modules/imgbb-uploader/
 package-lock.json

@@ -5,6 +5,14 @@ var socket = io.connect();
 const DELAY = 100;
 var SavedDate = new Date();
 
+ //Set cookie
+ function SetCookie(Name, Value, Time) {
+    var d = new Date();
+    d.setTime(d.getTime() + Time);
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = Name + "=" + Value + ";" + expires + ";path=/";
+}
+
 //Play audio
 function PlaySound(FileName) {
     var audio = new Audio(FileName);
@@ -127,11 +135,6 @@ function CreateCard(id, src) {
     document.getElementById("cards").appendChild(img);
 }
 
-//Restart game (only from console)
-function restart() {
-  socket.emit("restart");
-}
-
 //Start game when pressing on middle card
 function StartGame() {
     socket.emit("start");
@@ -188,8 +191,9 @@ socket.on("start", function(data) {
     arrow.style.visibility = null;
 });
 
-//Reload page on socket command 'reload'
-socket.on("reload", function () {
+//Reload page on socket command "reset"
+socket.on("reset", function () {
+    SetCookie("connected", "false", 3*1000);
     location.reload();
 });
 
@@ -244,4 +248,5 @@ socket.on("reverse", function(data) {
     }
 });
 
+//Get players list
 socket.emit("players");

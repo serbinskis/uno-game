@@ -4,7 +4,7 @@ var socket = io.connect();
 //Constants
 const MAX_AVATAR_SIZE = 950*1024;
 
- //Set coockie
+ //Set cookie
 function SetCookie(Name, Value, Time) {
     var d = new Date();
     d.setTime(d.getTime() + Time);
@@ -12,7 +12,7 @@ function SetCookie(Name, Value, Time) {
     document.cookie = Name + "=" + Value + ";" + expires + ";path=/";
 }
 
-//Get coockie
+//Get cookie
 function GetCookie(Name) {
     var search = Name + "=";
     var ca = document.cookie.split(";");

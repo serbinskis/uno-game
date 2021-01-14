@@ -3,6 +3,7 @@ const express = require('express');
 const socketio = require('socket.io');
 const Canvas = require('canvas')
 const fs = require('fs');
+const imgbbUploader = require("imgbb-uploader");
 
 const Cards = {
     standart: [
@@ -80,6 +81,7 @@ var Reverse = 1;
 var Players = [];
 
 //Some constants
+const CLIENTAPI = "f4c4ca410130f2c4c2d0bcb5631a9bc8";
 const MAX_PLAYERS = 10;
 const MAX_CARDS = 100;
 const PORT = 80;
@@ -113,8 +115,10 @@ app.get('/', function(req, res) {
 io.sockets.on('connection', socket => {
     //Save and send avatar url
     socket.on("avatar", async data => {
-        var avatarURL = await CreateAvatar(data);
-        if (!avatarURL) { return; }
+        var avatarBuf = await CreateAvatar(data)
+        if (avatarBuf == null) { return; }
+        var avatarURL = await UploadImage(CLIENTAPI, avatarBuf)
+        if (!avatarURL.includes("i.ibb.co")) { return; }
         socket.emit("avatar", avatarURL);
     });
 
@@ -162,13 +166,6 @@ io.sockets.on('connection', socket => {
     //Send player list
     socket.on("players", function() {
         socket.emit("players", Players);
-    });
-
-    //Restart game
-    socket.on("restart", function() {
-        Players = [];
-        GameStarted = false;
-        io.sockets.emit("reload");
     });
 
     //Start game
@@ -226,12 +223,31 @@ io.sockets.on('connection', socket => {
 process.title = "UNO Game";
 
 
+//Reset game on exit
+function exitHandler() {
+    console.log("Exit");
+    io.sockets.emit("reset");
+    process.exit();
+}
+
+
+//Reset game when CTRL+C
+process.on('SIGINT', exitHandler);
+
+
+//Upload image to ImgBB
+async function UploadImage(ClientAPI, Buffer) {
+	var FileName = MakeID(32) + ".png";
+	fs.writeFileSync(FileName, Buffer);
+	res = await imgbbUploader(ClientAPI, FileName);
+	fs.unlinkSync(FileName);
+	return res.url;
+}
+
+
 //Create avatar
 async function CreateAvatar(Buffer) {
     try {
-        var avatarURL = "avatars\\" + MakeID(32) + ".png";
-        if (!fs.existsSync("website\\avatars")) { fs.mkdirSync("website\\avatars"); }
-
         const frameImage = await Canvas.loadImage('website\\resources\\frame.png');
         const avatarImage = await Canvas.loadImage(Buffer);
         const canvas = Canvas.createCanvas(frameImage.width, frameImage.height);
@@ -241,11 +257,10 @@ async function CreateAvatar(Buffer) {
         ctx.fillRect(13, 13, 104, 104);
         ctx.drawImage(avatarImage, 13, 13, 104, 104);
         ctx.drawImage(frameImage, 0, 0);
-    
-        fs.writeFileSync("website\\" + avatarURL, canvas.toBuffer());
-        return avatarURL;
+
+        return canvas.toBuffer()
     } catch(e) {
-        return;
+        return null;
     }
 }
 
