@@ -3,21 +3,88 @@
     src: url(../resources/fonts/Uni_Sans_Heavy.otf);
 }
 
-@keyframes rotationR {
+/* Animation for roation right */
+@keyframes RotationRight{
     from {
-        transform: rotate(0deg);
+        transform: rotate(0deg) scaleX(1);
     }
     to {
-        transform: rotate(359deg);
+        transform: rotate(359deg) scaleX(1);
     }
 }
 
-@keyframes rotationL {
+/* Animation for roation relft */
+@keyframes RotationLeft {
     from {
-        transform: rotate(359deg);
+        transform: rotate(359deg) scaleX(-1);
     }
     to {
-        transform: rotate(0deg);
+        transform: rotate(0deg) scaleX(-1);
+    }
+}
+
+/* Animation for player join */
+@keyframes SlideLeft {
+    0% {
+        left: 105%;
+    }
+    100% {
+        left: 0%;
+    }
+}
+
+/* Animation for player leave */
+@keyframes SlideRight {
+    0% {
+        left: 0%;
+    }
+    100% {
+        left: 105%;
+    }
+}
+
+/* Animation for card place */
+@keyframes DropDown {
+    0% {
+        top: 50%;
+        left: calc(50%/-2);
+        width: calc(100% + 50%);
+        height: calc(100% + 50%);
+    }
+    100% {
+        top: 0%;
+        left: calc(0%/-2);
+        width: calc(100% + 0%);
+        height: calc(100% + 0%);
+    }
+}
+
+/* Animation for overlay */
+@keyframes PopUp {
+    0% {
+        transform: scale(0, 0);
+    }
+    5% {
+        transform: scale(1, 1);
+    }
+    95% {
+        transform: scale(1, 1);
+    }
+    100% {
+        transform: scale(0, 0);
+    }
+}
+
+/* Animation for stack of cards */
+@keyframes GrowShrink {
+    0% {
+        transform: scale(1, 1);
+    }
+    50% {
+        transform: scale(1.2, 1.2);
+    }
+    100% {
+        transform: scale(1, 1);
     }
 }
 
@@ -42,10 +109,14 @@ body {
 
 #cardstack {
     position: fixed;
-    top: 10px;
-    left: 10px;
+    top: 20px;
+    left: 20px;
     width: 155px;
     height: 130px;
+}
+
+#cardstack:hover {
+  animation: GrowShrink 1.2s linear infinite;
 }
 
 #table {
@@ -87,33 +158,43 @@ body {
     transform: translateX(3rem);
 }
 
-.directionR {
-    animation: rotationR 2s infinite linear;
+.directionRight {
+    animation: RotationRight 2s infinite linear;
 }
 
-.directionL {
-    animation: rotationL 2s infinite linear;
+.directionLeft {
+    animation: RotationLeft 2s infinite linear;
 }
 
 .arrow {
+    /* border: 2px solid black; */
     position: relative;
     text-align: right;
     float: right;
-    margin-right: 44px;
-    
+    width: 64px;
+    height: 64px;
+    margin-top: 7px;
+    margin-right: 47px;
+    pointer-events: none;
+    clear: both;
 }
 
 #players {
     /* border: 2px solid green; */
-    position: absolute;
-    top: 10px;
-    right: 5px;
+    position: relative;
+    float: right;
+    top: 5px;
 }
 
 .player {
     /* border: 2px solid red; */
     position: relative;
     text-align: right;
+    animation: SlideLeft 0.3s linear;
+}
+
+.remove {
+    animation: SlideRight 0.3s linear forwards;
 }
 
 .avatar {
@@ -124,17 +205,23 @@ body {
     margin-bottom: 10px;
 }
 
+.overlay {
+    /* border: 2px solid gray; */
+    visibility: hidden;
+    position: absolute;
+    vertical-align: middle;
+    right: 47px;
+    margin-bottom: 10px;
+}
+
+.popup {
+    visibility: visible;
+    animation: PopUp 1s linear forwards;
+}
+
 .username {
     /* border: 2px solid purple; */
     vertical-align: middle;
-    cursor: url(../resources/arrow.png), auto;
-}
-
-.count {
-    /* border: 2px solid yellow; */
-    display: inline-block;
-    text-align: center;
-    width: 37px;
     cursor: url(../resources/arrow.png), auto;
 }
 
@@ -168,4 +255,8 @@ body {
     width: 90px;
     height: 140px;
     filter: drop-shadow(5px 5px 5px #222);
+}
+
+.card-desk:not(#UNO_CARD) {
+    animation: DropDown 0.1s linear;
 }

@@ -61,6 +61,12 @@ function AvatarUpload() {
 //When clicking connect
 function ConnectClick() {
     var username = document.getElementById("username").value;
+
+    if (username == "") {
+        alert("Please write your username!");
+        return;
+    }
+
     var avatarURL = document.getElementById("avatar").src;
     var UID = String(new Date().getTime());
     SetCookie("username", username, 30*24*60*60*1000);

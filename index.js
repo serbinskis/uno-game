@@ -82,6 +82,7 @@ var Players = [];
 
 //Some constants
 const CLIENTAPI = "f4c4ca410130f2c4c2d0bcb5631a9bc8";
+const IP_CHECK = true;
 const MAX_PLAYERS = 10;
 const MAX_CARDS = 100;
 const PORT = 80;
@@ -129,6 +130,15 @@ io.sockets.on('connection', socket => {
             return;
         }
 
+        if (IP_CHECK) {
+            for (var i = 0; i < Players.length; i++) {
+                if (Players[i].ip == socket.handshake.address) {
+                    socket.emit("alert", "You are already joined!");
+                    return;
+                }
+            }
+        }
+
         if (Players.length >= MAX_PLAYERS) {
             socket.emit("alert", `Max players ${MAX_PLAYERS}/${MAX_PLAYERS}!`);
             return;
@@ -137,6 +147,7 @@ io.sockets.on('connection', socket => {
         console.log(`User connected: ${data.username}`);
         var Player = {'username': data.username, 'avatar': data.avatar, 'uid': data.uid, 'count': 0};
         io.sockets.emit("join", Player);
+        Player.ip = socket.handshake.address;
         Players.push(Player);
         socket.emit("reload");
     });
@@ -172,9 +183,10 @@ io.sockets.on('connection', socket => {
     socket.on("start", function() {
         if (GameStarted) { return; }
         GameStarted = true;
-        io.sockets.emit("start", GenerateCard(false));
         CurrentMove = Players[RandomRange(0, Players.length-1)].uid;
-        io.sockets.emit("next", CurrentMove); //Chnage focus to specific player
+        io.sockets.emit("start", GenerateCard(false));
+        io.sockets.emit("sound", "card_place");
+        io.sockets.emit("next", CurrentMove);
     });
 
     //When taking +1 card
@@ -185,14 +197,15 @@ io.sockets.on('connection', socket => {
             return;
         }
 
-        io.sockets.emit("sound", "card_pickup");
         socket.emit("card", GenerateCard(true));
+        io.sockets.emit("sound", "card_pickup");
         ChangeCount(Cookie, 1);
     });
 
     //When placing card
     socket.on("drop", data => {
         io.sockets.emit("drop", data);
+        io.sockets.emit("sound", "card_place");
         ChangeNext(socket.handshake.headers.cookie, data, "drop");
         ChangeCount(socket.handshake.headers.cookie, -1);
     });
@@ -205,9 +218,9 @@ io.sockets.on('connection', socket => {
             return;
         }
 
-        io.sockets.emit("sound", "card_pickup");
         socket.emit("card", data);
         io.sockets.emit("grab");
+        io.sockets.emit("sound", "card_pickup");
         ChangeNext(Cookie, data, "grab");
         ChangeCount(Cookie, 1);
     });
@@ -277,26 +290,9 @@ function FindPlayer(Cookie) {
 }
 
 
-//Change to next player
-function ChangeNext(Cookie, Card, Operation) {
+//Get next user index
+function FindNext(Cookie, By) {
     var Index = FindPlayer(Cookie);
-
-    if (Card.includes("REVERSE")) {
-        Reverse = Reverse * -1;
-        io.sockets.emit("reverse", Reverse);
-    };
-
-    if (Players.length <= 1) { return; }
-
-    if (Card.includes("BLOCK")) {
-        var By = 2;
-    } else {
-        var By = 1;
-    }
-
-    if (Operation == "grab") {
-        By = 0;
-    }
 
     By = By * Reverse;
     Index += By;
@@ -309,6 +305,43 @@ function ChangeNext(Cookie, Card, Operation) {
         Index = Players.length + Index;
     }
 
+    return Index;
+}
+
+//Check for cards
+function CheckCardSound(Card) {
+    if (Card.includes("BLOCK")) {
+        io.sockets.emit("sound", "block");
+    }
+}
+
+
+//Change to next player
+function ChangeNext(Cookie, Card, Operation) {
+    if (Operation == "drop") {
+        CheckCardSound(Card);
+    }
+
+    if (Card.includes("REVERSE")) {
+        Reverse = Reverse * -1;
+        io.sockets.emit("reverse", Reverse);
+    }
+
+    if (Players.length <= 1) { return; }
+
+    if (Card.includes("BLOCK") && (Operation == "drop")) {
+        var UID = Players[FindNext(Cookie, 1)].uid;
+        io.sockets.emit("overlay", {"uid": UID, "overlay": "BLOCK"});
+        var By = 2;
+    } else {
+        var By = 1;
+    }
+
+    if (Operation == "grab") {
+        By = 0;
+    }
+
+    var Index = FindNext(Cookie, By);
     CurrentMove = Players[Index].uid;
     io.sockets.emit("next", CurrentMove); //Chnage focus to specific player
 }
@@ -319,6 +352,11 @@ function ChangeCount(Cookie, By) {
     var Index = FindPlayer(Cookie);
     var UID = GetCookie("uid", Cookie);
     Players[Index].count += By;
+
+    if (By > 0) {
+        io.sockets.emit("overlay", {"uid": UID, "overlay": "PLUS_CARD"});
+    }
+
     io.sockets.emit("count", {"uid": UID, "count": Players[Index].count});
 }
 

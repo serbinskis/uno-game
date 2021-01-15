@@ -21,46 +21,6 @@ function PlaySound(FileName) {
     audio.play();
 }
 
-//Animation for cards
-function DropDown(object, SizeBy) {
-    if (SizeBy <= 0) {
-        object.style = null;
-        return;
-    }
-
-    object.style.top = SizeBy + "%";
-    object.style.left = -(SizeBy/2) + "%";
-    object.style.width = 100 + SizeBy + "%";
-    object.style.height = 100 + SizeBy + "%";
-    setTimeout(DropDown, 2, object, SizeBy-2);
-}
-
-//Animation for player join
-function SlideLeft(object, SizeBy) {
-    if (SizeBy <= 0) {
-        object.style = null;
-        return;
-    }
-
-    object.style.left = SizeBy + "%";
-    setTimeout(SlideLeft, 1, object, SizeBy-2);
-}
-
-//Animation for player leave
-function SlideRigth(object, SizeBy) {
-    var leftString = object.style.left || "0%";
-    var leftInteger = Number(leftString.slice(0, -1));
-
-    if (leftInteger >= SizeBy) {
-        object.remove();
-        UpdateArrowLocation();
-        return;
-    }
-    
-    object.style.left = (leftInteger+2) + "%";
-    setTimeout(SlideRigth, 1, object, SizeBy);
-}
-
 //Check delay so players don't spam click
 function CheckDelay(Delay) {
     if ((new Date().getTime() - SavedDate.getTime()) > Delay) {
@@ -71,10 +31,13 @@ function CheckDelay(Delay) {
     return false;
 }
 
-//Update arrow location
-function UpdateArrowLocation() {
-    var arrow = document.getElementById("arrow");
-    arrow.style.top = (document.getElementsByClassName("player").length) * 74 + 7 + "px";
+//Set overlay
+function SetOverlay(id, src) {
+    var overlay = document.getElementById(id);
+    overlay.src = src;
+    overlay.classList.remove("popup");
+    void overlay.offsetWidth;
+    overlay.classList.add("popup");
 }
 
 //Add player to list
@@ -95,6 +58,13 @@ function CreatePlayer(username, id, src, count) {
     avatarElement.height = 64;
     avatarElement.src = src;
 
+    var overlayElement = document.createElement("img");
+    overlayElement.className = "overlay";
+    overlayElement.id = "overlay_" + id;
+    overlayElement.draggable = false;
+    overlayElement.width = 64;
+    overlayElement.height = 64;
+
     var countElement = document.createElement("label");
     countElement.className = "count";
     countElement.id = "count_" + id;
@@ -102,10 +72,9 @@ function CreatePlayer(username, id, src, count) {
 
     divElement.appendChild(usernameElement);
     divElement.appendChild(avatarElement);
+    divElement.appendChild(overlayElement);
     divElement.appendChild(countElement);
     document.getElementById("players").appendChild(divElement);
-    UpdateArrowLocation();
-    SlideLeft(divElement, 105);
 }
 
 //Create card on desk
@@ -119,7 +88,6 @@ function CreateDeskCard(id, src) {
 
     img.addEventListener("click", CardDeskClick, false);
     document.getElementById("cards-desk").appendChild(img);
-    DropDown(img, 50);
 }
 
 //Create card on screen
@@ -179,13 +147,18 @@ socket.on("join", function(data) {
 
 //Remove player
 socket.on("left", function(data) {
-    SlideRigth(document.getElementById(data), 105);
+    player = document.getElementById(data);
+
+    player.addEventListener('animationend', () => {
+        player.remove();
+    });
+      
+    player.classList.add("remove");
 });
 
 //Spawn first card in stack
 socket.on("start", function(data) {
     document.getElementById("UNO_CARD").remove();
-    PlaySound('resources/sounds/card_placed.mp3');
     CreateDeskCard(data, "resources/cards/" + data + ".png");
     var arrow = document.getElementById("arrow");
     arrow.style.visibility = null;
@@ -202,6 +175,11 @@ socket.on("sound", function(data) {
     PlaySound(`resources/sounds/${data}.mp3`);
 });
 
+//Set overlay
+socket.on("overlay", function(data) {
+    SetOverlay("overlay_" + data.uid, "resources/overlays/" + data.overlay + ".png");
+});
+
 //Spawn generated card
 socket.on("card", function(data) {
     CreateCard(data, "resources/cards/" + data + ".png");
@@ -209,7 +187,6 @@ socket.on("card", function(data) {
 
 //Spawn dropped card in stack
 socket.on("drop", function(data) {
-    PlaySound('resources/sounds/card_placed.mp3');
     CreateDeskCard(data, "resources/cards/" + data + ".png");
 });
 
@@ -240,11 +217,9 @@ socket.on("reverse", function(data) {
     var arrow = document.getElementById("arrow");
 
     if (data > 0) {
-        arrow.src = "resources/directionR.png";
-        arrow.className = "arrow directionR";
+        arrow.className = "arrow directionRight";
     } else {
-        arrow.src = "resources/directionL.png";
-        arrow.className = "arrow directionL";
+        arrow.className = "arrow directionLeft";
     }
 });
 
