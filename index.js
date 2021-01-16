@@ -3,7 +3,7 @@ const express = require('express');
 const socketio = require('socket.io');
 const Canvas = require('canvas')
 const fs = require('fs');
-const imgbbUploader = require("imgbb-uploader");
+const imgur = require('imgur');
 
 const Cards = {
     standart: [
@@ -81,7 +81,7 @@ var Reverse = 1;
 var Players = [];
 
 //Some constants
-const CLIENTAPI = "f4c4ca410130f2c4c2d0bcb5631a9bc8";
+const CLIENTAPI = "8d447bc32bf3805";
 const IP_CHECK = true;
 const MAX_PLAYERS = 10;
 const MAX_CARDS = 100;
@@ -119,7 +119,12 @@ io.sockets.on('connection', socket => {
         var avatarBuf = await CreateAvatar(data)
         if (avatarBuf == null) { return; }
         var avatarURL = await UploadImage(CLIENTAPI, avatarBuf)
-        if (!avatarURL.includes("i.ibb.co")) { return; }
+
+        if (!avatarURL.includes("i.imgur.com")) {
+            socket.emit("alert", `There was an error uploading avatar!\n${avatarURL}`);
+            return;
+        }
+
         socket.emit("avatar", avatarURL);
     });
 
@@ -248,13 +253,17 @@ function exitHandler() {
 process.on('SIGINT', exitHandler);
 
 
-//Upload image to ImgBB
+//Upload image to Imgur
 async function UploadImage(ClientAPI, Buffer) {
-	var FileName = MakeID(32) + ".png";
-	fs.writeFileSync(FileName, Buffer);
-	res = await imgbbUploader(ClientAPI, FileName);
-	fs.unlinkSync(FileName);
-	return res.url;
+    imgur.setClientId(ClientAPI);
+
+    try {
+        var json = await imgur.uploadBase64(Buffer.toString("base64"));
+        return json.data.link;
+    } catch(err) {
+        console.log(`\n[Avatar Error] -> ${err.message.message}\n`);
+        return err.message.message;
+    }
 }
 
 
@@ -312,6 +321,17 @@ function FindNext(Cookie, By) {
 function CheckCardSound(Card) {
     if (Card.includes("BLOCK")) {
         io.sockets.emit("sound", "block");
+        return;
+    }
+
+    if (Card.includes("PLUS_TWO")) {
+        io.sockets.emit("sound", "plus_two");
+        return;
+    }
+
+    if (Card.includes("COLOR_CHANGE")) {
+        io.sockets.emit("sound", "color_change");
+        return;
     }
 }
 
@@ -358,17 +378,6 @@ function ChangeCount(Cookie, By) {
     }
 
     io.sockets.emit("count", {"uid": UID, "count": Players[Index].count});
-}
-
-
-//Random text generator
-function MakeID(length) {
-    var Result = '';
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (var i = 0; i < length; i++) {
-        Result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return Result;
 }
 
 

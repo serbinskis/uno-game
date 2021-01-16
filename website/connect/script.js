@@ -77,10 +77,14 @@ function ConnectClick() {
 
 //Check if image exists
 function imageExists(imageURL){
-    var http = new XMLHttpRequest();
-    http.open('HEAD', imageURL, false);
-    http.send();
-    return http.status != 404;
+    try {
+        var http = new XMLHttpRequest();
+        http.open('HEAD', imageURL, false);
+        http.send();
+        return http.status != 404;
+    } catch(err) {
+        return false;
+    }
 }
 
 //Load data from cookies and avatar

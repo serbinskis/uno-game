@@ -1,4 +1,2 @@
-!node_modules/
-node_modules/*
-!node_modules/imgbb-uploader/
+node_modules/
 package-lock.json
