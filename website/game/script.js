@@ -34,9 +34,7 @@ function CheckDelay(Delay) {
 //Show color change
 function ShowColors() {
     var colors = document.getElementById("color-select");
-    colors.style = null;
     colors.classList.remove("HideColor");
-    void colors.offsetWidth;
     colors.classList.add("ShowColors");
 }
 
@@ -44,7 +42,6 @@ function ShowColors() {
 function HideColors() {
     var colors = document.getElementById("color-select");
     colors.classList.remove("ShowColors");
-    void colors.offsetWidth;
     colors.classList.add("HideColor");
 }
 
