@@ -88,6 +88,26 @@
     }
 }
 
+/* Animation for color change show */
+@keyframes PopIn {
+    0% {
+        transform: translate(-50%, -50%) scale(0, 0);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1, 1);
+    }
+}
+
+/* Animation for color change hide */
+@keyframes PopOut {
+    0% {
+        transform: translate(-50%, -50%) scale(1, 1);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0, 0);
+    }
+}
+
 body {
     user-select: none;
     overflow: hidden;
@@ -128,6 +148,72 @@ body {
     transform: translate(-50%, -50%);
 }
 
+#color-select {
+    /* border: 2px solid chartreuse; */
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    left: calc(50% + 1px);
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.ShowColors {
+    animation: PopIn 0.1s linear forwards;
+}
+
+.HideColor {
+    animation: PopOut 0.1s linear forwards;
+}
+
+#YELLOW {
+    background-color: #FFDE16;
+    position: absolute;
+    top: 100px;
+    width: 100px;
+    height: 100px;
+}
+
+#GREEN {
+    background-color: #50AA44;
+    position: absolute;
+    top: 0px;
+    left: 100px;
+    width: 100px;
+    height: 100px;
+}
+
+#BLUE {
+    background-color: #0072BC;
+    position: absolute;
+    top: 100px;
+    left: 200px;
+    width: 100px;
+    height: 100px;
+}
+
+#RED {
+    background-color: #ED1C24;
+    position: absolute;
+    top: 200px;
+    left: 100px;
+    width: 100px;
+    height: 100px;
+}
+
+.color {
+    opacity: 0.75;
+    border-radius: 5px;
+    transition: 0.2s;
+    transform: scale(0.8, 0.8);
+    box-shadow: 0px 0px 5px 5px #000;
+}
+
+.color:hover {
+    transition: 0.2s;
+    transform: scale(1, 1);
+}
+
 #cards {
     /* border: 2px solid orange; */
     position: absolute;
@@ -145,6 +231,8 @@ body {
     /* border: 2px solid aqua; */
     width: 90px;
     height: 140px;
+    box-shadow: -5px 0px 5px 1px #222;
+    border-radius: 9px;
     margin-left: -3.5rem;
 }
 

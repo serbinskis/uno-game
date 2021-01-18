@@ -31,6 +31,30 @@ function CheckDelay(Delay) {
     return false;
 }
 
+//Show color change
+function ShowColors() {
+    var colors = document.getElementById("color-select");
+    colors.style = null;
+    colors.classList.remove("HideColor");
+    void colors.offsetWidth;
+    colors.classList.add("ShowColors");
+}
+
+//Hide color change
+function HideColors() {
+    var colors = document.getElementById("color-select");
+    colors.classList.remove("ShowColors");
+    void colors.offsetWidth;
+    colors.classList.add("HideColor");
+}
+
+//Change color
+function ChangeColor(object) {
+    PlaySound(`resources/sounds/color_press.mp3`);
+    socket.emit("color", object.id);
+    HideColors();
+}
+
 //Set overlay
 function SetOverlay(id, src) {
     var overlay = document.getElementById(id);
@@ -180,6 +204,21 @@ socket.on("overlay", function(data) {
     SetOverlay("overlay_" + data.uid, "resources/overlays/" + data.overlay + ".png");
 });
 
+//Show color selector
+socket.on("colors", function() {
+    ShowColors();
+});
+
+//Change card color
+socket.on("color", function(data) {
+    var CardsDesk = document.getElementsByClassName("card-desk");
+    var Card = CardsDesk[CardsDesk.length-1];
+
+    if ((Card.id == "PLUS_FOUR") || (Card.id == "COLOR_CHANGE")) {
+        Card.src = "resources/cards/" + Card.id + "_" + data + ".png";
+    }
+});
+
 //Spawn generated card
 socket.on("card", function(data) {
     CreateCard(data, "resources/cards/" + data + ".png");
@@ -187,6 +226,7 @@ socket.on("card", function(data) {
 
 //Spawn dropped card in stack
 socket.on("drop", function(data) {
+    HideColors();
     CreateDeskCard(data, "resources/cards/" + data + ".png");
 });
 
@@ -208,6 +248,7 @@ socket.on("next", function(data) {
 
 //Remove card from top of desk
 socket.on("grab", function() {
+    HideColors();
     var CardsDesk = document.getElementsByClassName("card-desk");
     CardsDesk[CardsDesk.length-1].remove();
 });

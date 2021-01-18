@@ -210,7 +210,7 @@ io.sockets.on('connection', socket => {
     //When placing card
     socket.on("drop", data => {
         io.sockets.emit("drop", data);
-        io.sockets.emit("sound", "card_place");
+        CheckCards(socket, data, "drop");
         ChangeNext(socket.handshake.headers.cookie, data, "drop");
         ChangeCount(socket.handshake.headers.cookie, -1);
     });
@@ -226,8 +226,15 @@ io.sockets.on('connection', socket => {
         socket.emit("card", data);
         io.sockets.emit("grab");
         io.sockets.emit("sound", "card_pickup");
+        CheckCards(socket, data, "grab");
         ChangeNext(Cookie, data, "grab");
         ChangeCount(Cookie, 1);
+    });
+
+    //When changing colors
+    socket.on("color", data => {
+        io.sockets.emit("sound", "color");
+        io.sockets.emit("color", data);
     });
 })
 
@@ -318,7 +325,22 @@ function FindNext(Cookie, By) {
 }
 
 //Check for cards
-function CheckCardSound(Card) {
+function CheckCards(socket, Card, Operation) {
+    if (Card.includes("REVERSE")) {
+        Reverse = Reverse * -1;
+        io.sockets.emit("reverse", Reverse);
+
+        if (Operation == "drop") {
+            io.sockets.emit("sound", "reverse");
+        }
+
+        return;
+    }
+
+    if (Operation != "drop") {
+        return;
+    }
+
     if (Card.includes("BLOCK")) {
         io.sockets.emit("sound", "block");
         return;
@@ -329,24 +351,24 @@ function CheckCardSound(Card) {
         return;
     }
 
-    if (Card.includes("COLOR_CHANGE")) {
-        io.sockets.emit("sound", "color_change");
+    if (Card.includes("PLUS_FOUR")) {
+        io.sockets.emit("sound", "plus_four");
+        socket.emit("colors");
         return;
     }
+
+    if (Card.includes("COLOR_CHANGE")) {
+        io.sockets.emit("sound", "color_change");
+        socket.emit("colors");
+        return;
+    }
+
+    io.sockets.emit("sound", "card_place");
 }
 
 
 //Change to next player
 function ChangeNext(Cookie, Card, Operation) {
-    if (Operation == "drop") {
-        CheckCardSound(Card);
-    }
-
-    if (Card.includes("REVERSE")) {
-        Reverse = Reverse * -1;
-        io.sockets.emit("reverse", Reverse);
-    }
-
     if (Players.length <= 1) { return; }
 
     if (Card.includes("BLOCK") && (Operation == "drop")) {
