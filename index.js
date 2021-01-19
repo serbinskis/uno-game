@@ -1,9 +1,12 @@
-const http = require('http');
-const express = require('express');
-const socketio = require('socket.io');
-const Canvas = require('canvas')
-const fs = require('fs');
-const imgur = require('imgur');
+const http = require("http");
+const express = require("express");
+const socketio = require("socket.io");
+const Canvas = require("canvas")
+const fs = require("fs");
+const imgur = require("imgur");
+const readlineSync = require("readline-sync");
+var keypress = require("keypress");
+
 
 const Cards = {
     standart: [
@@ -76,16 +79,24 @@ const Cards = {
 
 //Some variables
 var GameStarted = false;
+var IPCheck = true;
 var CurrentMove = "";
 var Reverse = 1;
 var Players = [];
 
 //Some constants
 const CLIENTAPI = "8d447bc32bf3805";
-const IP_CHECK = true;
 const MAX_PLAYERS = 10;
 const MAX_CARDS = 100;
 const PORT = 80;
+
+//Ask for input
+IPCheck = (readlineSync.question("Check users by ip (true/false): ") != "false");
+
+//Print some info
+console.log(`\n[Settings] -> `);
+console.log(`IP Check: ${IPCheck}`);
+console.log(``);
 
 
 //Launch website
@@ -96,24 +107,24 @@ const io = socketio(server);
 
 
 //When someone visit webpage
-app.get('/', function(req, res) {
+app.get("/", function(req, res) {
     //Log some data
-    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
     var Cookie = req.headers.cookie || "";
     console.log(`\nNew connection from ${ip}`);
     console.log(`Cookie: ${Cookie}`);
     
     //Load needed page
     if (Cookie.includes("connected=true") && !GameStarted && (Players.length < MAX_PLAYERS)) {
-        res.sendFile(__dirname + '/website/game/index.html');
+        res.sendFile(__dirname + "/website/game/index.html");
     } else {
-        res.sendFile(__dirname + '/website/connect/index.html');
+        res.sendFile(__dirname + "/website/connect/index.html");
     }
 });
 
 
 //When someone connects
-io.sockets.on('connection', socket => {
+io.sockets.on("connection", socket => {
     //Save and send avatar url
     socket.on("avatar", async data => {
         var avatarBuf = await CreateAvatar(data)
@@ -135,7 +146,7 @@ io.sockets.on('connection', socket => {
             return;
         }
 
-        if (IP_CHECK) {
+        if (IPCheck) {
             for (var i = 0; i < Players.length; i++) {
                 if (Players[i].ip == socket.handshake.address) {
                     socket.emit("alert", "You are already joined!");
@@ -150,7 +161,7 @@ io.sockets.on('connection', socket => {
         }
 
         console.log(`User connected: ${data.username}`);
-        var Player = {'username': data.username, 'avatar': data.avatar, 'uid': data.uid, 'count': 0};
+        var Player = {"username": data.username, "avatar": data.avatar, "uid": data.uid, "count": 0};
         io.sockets.emit("join", Player);
         Player.ip = socket.handshake.address;
         Players.push(Player);
@@ -195,11 +206,16 @@ io.sockets.on('connection', socket => {
     });
 
     //When taking +1 card
-    socket.on("card", function() {
+    socket.on("card", function(data) {
         var Cookie = socket.handshake.headers.cookie;
+        var UID = Players[FindPlayer(Cookie)].uid;
 
         if (Players[FindPlayer(Cookie)].count >= MAX_CARDS) {
             return;
+        }
+
+        if ((data.includes("PLUS_TWO") || data.includes("PLUS_FOUR")) && (UID == CurrentMove)) {
+            ChangeNext(socket.handshake.headers.cookie, "", "");
         }
 
         socket.emit("card", GenerateCard(true));
@@ -247,17 +263,28 @@ io.sockets.on('connection', socket => {
 //Set title
 process.title = "UNO Game";
 
+//Detect key press
+keypress(process.stdin);
+ 
+//Restart game on CTRL+R & Exit on CTRL+C
+process.stdin.on("keypress", function (chunk, key) {
+    if (key.ctrl && key.name === "c") {
+        console.log("Exit");
+        io.sockets.emit("closed", "Server has been closed.");
+        process.stdin.pause();
+        process.exit();
+    }
 
-//Reset game on exit
-function exitHandler() {
-    console.log("Exit");
-    io.sockets.emit("reset");
-    process.exit();
-}
+    if (key.ctrl && key.name === "r") {
+        Players = [];
+        io.sockets.emit("restart");
+        console.log("Restart");
+    }
+});
 
-
-//Reset game when CTRL+C
-process.on('SIGINT', exitHandler);
+//Detect key press
+process.stdin.setRawMode(true);
+process.stdin.resume();
 
 
 //Upload image to Imgur
@@ -277,10 +304,10 @@ async function UploadImage(ClientAPI, Buffer) {
 //Create avatar
 async function CreateAvatar(Buffer) {
     try {
-        const frameImage = await Canvas.loadImage('website\\resources\\frame.png');
+        const frameImage = await Canvas.loadImage("website\\resources\\frame.png");
         const avatarImage = await Canvas.loadImage(Buffer);
         const canvas = Canvas.createCanvas(frameImage.width, frameImage.height);
-        const ctx = canvas.getContext('2d')
+        const ctx = canvas.getContext("2d")
 
         ctx.fillStyle = "black";
         ctx.fillRect(13, 13, 104, 104);
@@ -442,9 +469,9 @@ function GetCookie(Name, Cookie) {
 
 //Get IPV4 Address
 function IPV4Address() {
-    var address, ifaces = require('os').networkInterfaces();
+    var address, ifaces = require("os").networkInterfaces();
     for (var dev in ifaces) {
-        ifaces[dev].filter((details) => details.family === 'IPv4' && details.internal === false ? address = details.address: undefined);
+        ifaces[dev].filter((details) => details.family === "IPv4" && details.internal === false ? address = details.address: undefined);
     }
 
     return address;

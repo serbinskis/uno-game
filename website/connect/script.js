@@ -109,6 +109,13 @@ socket.on("reload", function () {
     location.reload();
 });
 
+//Server closed
+socket.on("closed", function (data) {
+    document.getElementById("body").remove();
+    document.getElementsByTagName("body")[0].style = "font-family: null; cursor: auto;"
+    document.getElementById("closed").innerHTML = data;
+});
+
 //Alert command
 socket.on("alert", function(data) {
     alert(data);

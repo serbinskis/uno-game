@@ -16,7 +16,7 @@
     <img draggable="false" src="resources/cards/UNO_CARD.png" class="card-desk" id="UNO_CARD" onclick="StartGame()">
   </div>
 
-  <div id="color-select">
+  <div id="color-select" style="visibility: hidden;">
     <canvas class="color" id="YELLOW" onclick="ChangeColor(this)"></canvas>
     <canvas class="color" id="GREEN" onclick="ChangeColor(this)"></canvas>
     <canvas class="color" id="BLUE" onclick="ChangeColor(this)"></canvas>
@@ -31,4 +31,5 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="game/script.js"></script>
 </div>
+<label id="closed" style="color: #000; font-size: 16px; font-weight: normal; font-family: null;  cursor: auto;"></label>
 </html>

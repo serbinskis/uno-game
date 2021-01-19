@@ -34,6 +34,7 @@ function CheckDelay(Delay) {
 //Show color change
 function ShowColors() {
     var colors = document.getElementById("color-select");
+    colors.style = null;
     colors.classList.remove("HideColor");
     colors.classList.add("ShowColors");
 }
@@ -132,7 +133,8 @@ function StartGame() {
 //Generate new card when pressing on card stack
 function CardStackClick() {
     if (!CheckDelay(DELAY)) { return; }
-    socket.emit("card");
+    var CardsDesk = document.getElementsByClassName("card-desk");
+    socket.emit("card", CardsDesk[CardsDesk.length-1].id);
 }
 
 //When clicking on card on desk
@@ -185,8 +187,15 @@ socket.on("start", function(data) {
     arrow.style.visibility = null;
 });
 
-//Reload page on socket command "reset"
-socket.on("reset", function () {
+//Server closed
+socket.on("closed", function (data) {
+    document.getElementById("body").remove();
+    document.getElementsByTagName("body")[0].style = "font-family: null; cursor: auto;"
+    document.getElementById("closed").innerHTML = data;
+});
+
+//Game realod
+socket.on("restart", function () {
     SetCookie("connected", "false", 3*1000);
     location.reload();
 });
@@ -227,6 +236,13 @@ socket.on("drop", function(data) {
     CreateDeskCard(data, "resources/cards/" + data + ".png");
 });
 
+//Remove card from top of desk
+socket.on("grab", function() {
+    HideColors();
+    var CardsDesk = document.getElementsByClassName("card-desk");
+    CardsDesk[CardsDesk.length-1].remove();
+});
+
 //Spawn dropped card in stack
 socket.on("count", function(data) {
     document.getElementById("count_" + data.uid).innerHTML = data.count;
@@ -241,13 +257,6 @@ socket.on("next", function(data) {
   }
 
   document.getElementById("username_" + data).className = "username glow";
-});
-
-//Remove card from top of desk
-socket.on("grab", function() {
-    HideColors();
-    var CardsDesk = document.getElementsByClassName("card-desk");
-    CardsDesk[CardsDesk.length-1].remove();
 });
 
 //Change arrow animation

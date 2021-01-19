@@ -12,6 +12,8 @@
     "canvas": "^2.6.1",
     "express": "^4.17.1",
     "imgur": "^0.3.1",
+    "keypress": "^0.2.1",
+    "readline-sync": "^1.4.10",
     "socket.io": "^3.0.5"
   }
 }
