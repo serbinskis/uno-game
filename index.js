@@ -81,6 +81,7 @@ const Cards = {
 var GameStarted = false;
 var IPCheck = true;
 var CurrentMove = "";
+var CurrentTake = "";
 var Reverse = 1;
 var Players = [];
 
@@ -214,7 +215,8 @@ io.sockets.on("connection", socket => {
             return;
         }
 
-        if ((data.includes("PLUS_TWO") || data.includes("PLUS_FOUR")) && (UID == CurrentMove)) {
+        if ((data.includes("PLUS_TWO") || data.includes("PLUS_FOUR")) && (UID == CurrentTake)) {
+            CurrentTake = "";
             ChangeNext(socket.handshake.headers.cookie, "", "");
         }
 
@@ -368,17 +370,25 @@ function CheckCards(socket, Card, Operation) {
         return;
     }
 
+    CurrentTake = "";
+
     if (Card.includes("BLOCK")) {
         io.sockets.emit("sound", "block");
         return;
     }
 
     if (Card.includes("PLUS_TWO")) {
+        var Cookie = socket.handshake.headers.cookie;
+        var Index = FindNext(Cookie, 1);
+        CurrentTake = Players[Index].uid;
         io.sockets.emit("sound", "plus_two");
         return;
     }
 
     if (Card.includes("PLUS_FOUR")) {
+        var Cookie = socket.handshake.headers.cookie;
+        var Index = FindNext(Cookie, 1);
+        CurrentTake = Players[Index].uid;
         io.sockets.emit("sound", "plus_four");
         socket.emit("colors");
         return;
@@ -401,6 +411,7 @@ function ChangeNext(Cookie, Card, Operation) {
     if (Card.includes("BLOCK") && (Operation == "drop")) {
         var UID = Players[FindNext(Cookie, 1)].uid;
         io.sockets.emit("overlay", {"uid": UID, "overlay": "BLOCK"});
+        io.sockets.emit("cover", {"uid": UID, "cover": "SKIP"});
         var By = 2;
     } else {
         var By = 1;

@@ -13,6 +13,26 @@ var SavedDate = new Date();
     document.cookie = Name + "=" + Value + ";" + expires + ";path=/";
 }
 
+//Get cookie
+function GetCookie(Name) {
+    var search = Name + "=";
+    var ca = document.cookie.split(";");
+
+    for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+
+        while (c.charAt(0) == " ") {
+            c = c.substring(1);
+        }
+
+        if (c.indexOf(search) == 0) {
+            return c.substring(search.length, c.length);
+        }
+    }
+
+    return "";
+}
+
 //Play audio
 function PlaySound(FileName) {
     var audio = new Audio(FileName);
@@ -60,6 +80,21 @@ function SetOverlay(id, src) {
     overlay.classList.remove("popup");
     void overlay.offsetWidth;
     overlay.classList.add("popup");
+}
+
+//Set cover
+function SetCover(src) {
+    var cover = document.getElementById("cover");
+    cover.src = src;
+    cover.style = null;
+
+    cover.addEventListener('animationend', () => {
+        cover.style = "visibility: hidden;";
+    });
+
+    cover.classList.remove("popupCover");
+    void cover.offsetWidth;
+    cover.classList.add("popupCover");
 }
 
 //Add player to list
@@ -208,6 +243,13 @@ socket.on("sound", function(data) {
 //Set overlay
 socket.on("overlay", function(data) {
     SetOverlay("overlay_" + data.uid, "resources/overlays/" + data.overlay + ".png");
+});
+
+//Set cover
+socket.on("cover", function(data) {
+    if (GetCookie("uid") == data.uid) {
+        SetCover("resources/cover/" + data.cover + ".png");
+    }
 });
 
 //Show color selector

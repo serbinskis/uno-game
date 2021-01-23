@@ -75,6 +75,22 @@
     }
 }
 
+/* Animation for cover */
+@keyframes PopUpCover {
+    0% {
+        transform: translate(-50%, -50%) scale(0, 0);
+    }
+    5% {
+        transform: translate(-50%, -50%) scale(1, 1);
+    }
+    95% {
+        transform: translate(-50%, -50%) scale(1, 1);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0, 0);
+    }
+}
+
 /* Animation for stack of cards */
 @keyframes GrowShrink {
     0% {
@@ -347,4 +363,18 @@ body {
 
 .card-desk:not(#UNO_CARD) {
     animation: DropDown 0.1s linear;
+}
+
+.popupCover {
+    animation: PopUpCover 1s linear forwards;
+}
+
+#cover {
+    /* border: 2px solid orange; */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 256px;
+    height: 256px;
 }
