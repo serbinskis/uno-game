@@ -152,7 +152,7 @@ body {
 }
 
 #cardstack:hover {
-  animation: GrowShrink 1.2s linear infinite;
+    animation: GrowShrink 1.2s linear infinite;
 }
 
 #table {
