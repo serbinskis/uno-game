@@ -1,6 +1,10 @@
-//Load data from cookies and avatar
+//Load username and avatar from cookies
 $("#username")[0].value = GetCookie("username");
-$("#avatar")[0].src = `avatars/${GetCookie("avatar")}.png`;
+if (fileExists(`avatars/${GetCookie("avatar")}.png`)) {
+    $("#avatar")[0].src = `avatars/${GetCookie("avatar")}.png`;
+} else {
+    $("#avatar")[0].src = "resources/defaultAvatar.png";
+}
 
 
 //When click on avatar

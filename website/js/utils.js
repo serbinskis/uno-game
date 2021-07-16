@@ -23,6 +23,19 @@ socket.on("closed", function (data) {
 });
 
 
+//Check if file exists
+function fileExists(url) {
+    try {
+        var http = new XMLHttpRequest();
+        http.open('HEAD', url, false);
+        http.send();
+        return http.status != 404;
+    } catch(err) {
+        return false;
+    }
+}
+
+
  //Set cookie
 function SetCookie(Name, Value, Time) {
     var d = new Date();
