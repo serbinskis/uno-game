@@ -330,7 +330,7 @@ io.sockets.on("connection", socket => {
 
         //Get current room
         var room = rooms[socket.room];
-        if (!room || !room.started || room.current_move != socket.uid) { return; }
+        if (!room || !room.started || !room.next_move || room.current_move != socket.uid) { return; }
 
         //Check if current card is PLUS_FOUR or COLOR_CHANGE
         if (room.current_card.type != "PLUS_FOUR" && room.current_card.type != "COLOR_CHANGE") {
