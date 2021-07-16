@@ -217,12 +217,7 @@ io.sockets.on("connection", socket => {
         var next_by = 1;
         var pickcolor = false;
 
-        //console.log("current_card:");
-        //console.log(room.current_card);
-        //console.log("card:");
-        //console.log(card);
-        //console.log("\n");
-
+        //Check card can be played
         switch (card.type) {
             case "REVERSE": //Can put on same color or same type, reverse direction, can be put after stack was taken
                 if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
@@ -247,37 +242,6 @@ io.sockets.on("connection", socket => {
             default:
                 if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
         }
-
-        /*//Handle cards with same color and type
-        if (card.color == room.current_card.color || card.type == room.current_card.type) {
-            switch (card.type) {
-                case "REVERSE": //No need to check for color or same type, just change dierction
-                    if (room.stack > 0) { return; }
-                    room.direction *= -1;
-                    break;
-                case "BLOCK": //No need to check for color or same type, just skip by 1 more
-                    if (room.stack > 0) { return; }
-                    next_by += 1;
-                    break;
-                case "PLUS_TWO": //Cannot put PLUS_TWO on PLUS_FOUR, but can put it on anything else with same color, can be put after stack was taken
-                    if (room.stack > 0 && room.current_card.type == "PLUS_FOUR") { return; }
-                    room.stack += 2;
-                    break;
-                default: if (room.stack > 0) { return; }
-            }
-        } else { //Handle cards with different color
-            switch (card.type) {
-                case "PLUS_FOUR": //PLUS_FOUR can be aplied to everything there is no limits, so no need to check
-                    room.stack += 4;
-                    pickcolor = true;
-                    break;
-                case "COLOR_CHANGE": //Cannot be put on PLUS_FOUR and PLUS_TWO, but can put it on anything else with different color, can be put after stack was taken
-                    if (room.stack > 0 && (room.current_card.type == "PLUS_FOUR" || room.current_card.type == "PLUS_TWO")) { return; }
-                    pickcolor = true;
-                    break;
-                default: return;
-            }
-        }*/
 
         room.current_card = card; //Update current card
         delete room.cards[socket.uid][data.id]; //Remove card from player
