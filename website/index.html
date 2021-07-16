@@ -1,0 +1,83 @@
+<html lang="en" crosspilot="">
+<head>
+  <title>UNO Game</title>
+  <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/utils.css" rel="stylesheet">
+  <link href="css/connect.css" rel="stylesheet">
+  <link href="css/game.css" rel="stylesheet">
+</head>
+
+<div id="body">
+  <div id="login-container">
+    <div id="login-form" class="modal-dialog modal-dialog-custom">
+      <img id="avatar" src="resources/defaultAvatar.png"></img>
+
+      <div class="input-row">
+        <input class="input form-control" id="username" name="Username" placeholder="Username" type="text" value="" maxlength="24">
+        <span class="icon"><i class="far fa-user"></i></span>
+      </div>
+
+      <div class="input-row">
+        <input class="input form-control" id="invite" name="invite" placeholder="Invite" type="text" value="" maxlength="8">
+        <span class="icon"><i class="fas fa-hashtag"></i></span>
+      </div>
+
+      <input type="submit" id="connect" value="Connect">
+      <a id="creator" href="https://wobbychip.github.io" target="_blank">Created By WobbyChip</a>
+    </div>
+  </div>
+
+
+  <div id="game-container" class="hidden">
+    <img draggable="false" src="resources/gameBackground.jpg" id="bgimg">
+    <img draggable="false" src="resources/table.png" id="table">
+
+    <div id="cards-desk">
+        <img draggable="false" src="resources/cards/UNO_CARD.png" class="card-desk" id="UNO_CARD">
+    </div>
+
+    <div id="players"></div>
+    <img class="arrow directionRight" id="arrow" src="resources/direction.png" style="visibility: hidden;">
+    <img draggable="false" src="resources/desk.png" title="Take +1 Card" id="carddeck" class="disabled">
+    <div id="cards"></div>
+
+    <div id="color-select">
+      <canvas class="color" id="YELLOW"></canvas>
+      <canvas class="color" id="GREEN"></canvas>
+      <canvas class="color" id="BLUE"></canvas>
+      <canvas class="color" id="RED"></canvas>
+    </div>
+
+    <div class="hidden" id="choose-container">
+      <img id="choose-bar" src="resources/bar.png">
+      <img id="choose-card">
+      <span class="choose-button text" id="choose-place">Place</span>
+      <span class="choose-button text" id="choose-save">Save</span>
+    </div>
+
+    <img id="cover">
+
+    <div id="winner-container" class="hidden">
+      <div id="winner-wrapper">
+        <label class="winner-title" id="winner-timeout"></label>
+        <label class="winner-title" id="winner-username"></label>
+        <img id="winner-card" src="resources/winner.png">
+        <img id="winner-avatar">
+        <img id="winner-crown" src="resources/crown.png">
+        <span id="winner-return">Return</span>
+      </div>
+    </div>
+  </div>
+
+  <label id="closed" style="display: none; color: #000; font-size: 16px; font-weight: normal; font-family: null; cursor: auto;"></label>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://kit.fontawesome.com/31249f53f3.js" crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="js/utils.js"></script>
+<script src="js/connect.js"></script>
+<script src="js/game.js"></script>
+</html>
