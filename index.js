@@ -217,7 +217,7 @@ io.sockets.on("connection", socket => {
         var next_by = 1;
         var pickcolor = false;
 
-        //Check card can be played
+        //Check if card can be played
         switch (card.type) {
             case "REVERSE": //Can put on same color or same type, reverse direction, can be put after stack was taken
                 if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
