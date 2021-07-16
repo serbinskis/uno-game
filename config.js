@@ -1,12 +1,13 @@
 module.exports = {
-    PORT: 80,
-    MAX_PLAYERS: 10,
-    MAX_CARDS: 100,
-    START_CARDS: 8,
-    NEXT_GAME_TIMEOUT: 10,
+    PORT: 80, //Port
+    MAX_PLAYERS: 10, //Maximum amount of players
+    MAX_CARDS: 100, //Max cards, so it would not crash game
+    START_CARDS: 8, //Amount of cards every player will get
+    NEXT_GAME_TIMEOUT: 10, //Time before next game starts
+    TURN_DELAY: Math.round(1.5*1000), //Delay between next player will get his turn
 
-    DIRECTION_FORWARD: 1,
-    DIRECTION_REVERSE: -1,
+    DIRECTION_FORWARD: 1, //Normal direction
+    DIRECTION_REVERSE: -1, //Reverse direction
 
     error_codes: {
         '200': 'OK',
