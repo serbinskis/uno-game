@@ -5,6 +5,7 @@ const socketio = require("socket.io");
 const Canvas = require("canvas")
 const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
+const { Console } = require("console");
 
 //Variable to store all rooms
 var rooms = {};
@@ -201,132 +202,13 @@ io.sockets.on("connection", socket => {
     });
 
 
-    //When placing card
-    socket.on("place_card", data => {
-        if (!socket.room || !socket.uid) { return; }
-
-        //Get current room
-        var room = rooms[socket.room];
-        if (!room || !room.started || room.next_move || room.current_move != socket.uid) { return; }
-
-        //Get current card
-        var card = room.cards[socket.uid][data.id];
-        if (!card) { return; }
-
-        //Store information here
-        var next_by = 1;
-        var pickcolor = false;
-
-        //Check if card can be played
-        switch (card.type) {
-            case "REVERSE": //Can put on same color or same type, reverse direction, can be put after stack was taken
-                if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
-                room.direction *= -1;
-                break;
-            case "BLOCK": //Can put on same color or same type, just skip by 1 more, can be put after stack was taken
-                if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
-                next_by += 1;
-                break;
-            case "PLUS_TWO": //Cannot put PLUS_TWO on PLUS_FOUR, but can put it on anything else with same color, can be put after stack was taken
-                if ((room.stack > 0 && room.current_card.type == "PLUS_FOUR") || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
-                room.stack += 2;
-                break;
-            case "PLUS_FOUR": //PLUS_FOUR can be aplied to everything there is no limits, so no need to check color or type
-                room.stack += 4;
-                pickcolor = true;
-                break;
-            case "COLOR_CHANGE": //Cannot be put on PLUS_FOUR and PLUS_TWO, but can put it on anything else with different color, can be put after stack was taken
-                if ((room.stack > 0 && (room.current_card.type == "PLUS_FOUR" || room.current_card.type == "PLUS_TWO"))) { return; }
-                pickcolor = true;
-                break;
-            default:
-                if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
-        }
-
-        room.current_card = card; //Update current card
-        delete room.cards[socket.uid][data.id]; //Remove card from player
-        delete room.choose; //Clear choose if player was choosing
-        var player = room.players[socket.uid]; //Get player
-        player.count -= 1; //Decrease players card count
-
-        if (pickcolor) {
-            room.next_move = NextPlayer(room, socket.uid, next_by);
-        } else {
-            room.current_move = NextPlayer(room, socket.uid, next_by);
-        }
-
-        var data = {
-            new_card: card, //new placed card
-            remove_card_id: data.id, //used to remove card from player
-            direction: room.direction, //What, direction normal or reverse
-            next_move: room.current_move, //Next who will play
-            pickcolor: pickcolor, //Should player pick color
-            uno: (player.count == 1), //If it should be uno
-            count: {
-                uid: socket.uid, //Who's count changed
-                count: player.count, //What is new count
-            },
-        }
-
-        //Check if player won
-        if (room.players[socket.uid].count == 0) {
-            room.current_move = "";
-            room.winner = socket.uid;
-            data.winner = socket.uid;
-            data.timeout = config.NEXT_GAME_TIMEOUT;
-
-            ResetRoom(socket.room);
-        }
-
-        //Check if and who was blocked
-        if (next_by >= 2) {
-            data.blocked = NextPlayer(room, socket.uid, 1);
-        }
-
-        //Send data
-        io.sockets.to(socket.room).emit("place_card", data);
-    });
-
-
-    //When changing color
-    socket.on("change_color", function(data) {
-        if (!socket.room || !socket.uid) { return; }
-
-        //Get current room
-        var room = rooms[socket.room];
-        if (!room || !room.started || !room.next_move || room.current_move != socket.uid) { return; }
-
-        //Check if current card is PLUS_FOUR or COLOR_CHANGE
-        if (room.current_card.type != "PLUS_FOUR" && room.current_card.type != "COLOR_CHANGE") {
-            return;
-        }
-
-        //Check sent information
-        if (!config.colors.includes(data.color)) {
-            return;
-        }
-
-        room.current_card = {color: data.color, type: room.current_card.type} //Update card
-        room.current_move = room.next_move; //Set next move
-        delete room.next_move;
-
-        var data = {
-            type: room.current_card.type, //What type of card
-            color: data.color, //To what color changed
-            next_move: room.current_move, //Who is playing next
-        }
-
-        io.sockets.to(socket.room).emit("change_color", data);
-    });
-
-
     //When taking +1 card
     socket.on("take_card", function() {
         if (!socket.room || !socket.uid) { return; }
 
         //Get current room
         var room = rooms[socket.room];
-        if (!room || !room.started || room.next_move || room.choose || room.current_move != socket.uid) { return; }
+        if (!room || !room.started || room.next_move || room.turn_delay || room.choose || room.current_move != socket.uid) { return; }
 
         //Get player
         var player = room.players[socket.uid];
@@ -372,7 +254,157 @@ io.sockets.on("connection", socket => {
         room.stack = 0;
 
         socket.emit("take_card", {cards: cards, choose: can_play_card_after});
-        io.sockets.to(socket.room).emit("take_card", {next_move: room.current_move, count: {do_update: (Object.keys(cards).length > 0), uid: socket.uid, count: player.count}});
+        io.sockets.to(socket.room).emit("take_card", {stack: room.stack, next_move: room.current_move, count: {do_update: (Object.keys(cards).length > 0), uid: socket.uid, count: player.count}});
+    });
+
+
+    //When placing card
+    socket.on("place_card", data => {
+        if (!socket.room || !socket.uid) { return; }
+
+        //Get current room
+        var room = rooms[socket.room];
+        if (!room || !room.started || room.next_move || room.current_move != socket.uid) { return; }
+
+        //Get current card
+        var card = room.cards[socket.uid][data.id];
+        if (!card) { return; }
+
+        //Check if player has time to stack card and if card is same color and type
+        if (room.turn_delay) {
+            var card_color = card.color != "ANY" ? card.color : room.current_card.color;
+            if ((card_color != room.current_card.color) || (card.type != room.current_card.type)) { return; }
+        }
+
+        //Store information here
+        var next_by = 1;
+        var pickcolor = false;
+
+        //Check if card can be played
+        switch (card.type) {
+            case "REVERSE": //Can put on same color or same type, reverse direction, can be put after stack was taken
+                if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
+                room.direction *= -1;
+                break;
+            case "BLOCK": //Can put on same color or same type, just skip by 1 more, can be put after stack was taken
+                if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
+                next_by += 1;
+                break;
+            case "PLUS_TWO": //Cannot put PLUS_TWO on PLUS_FOUR, but can put it on anything else with same color, can be put after stack was taken
+                if ((room.stack > 0 && room.current_card.type == "PLUS_FOUR") || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
+                room.stack += 2;
+                break;
+            case "PLUS_FOUR": //PLUS_FOUR can be aplied to everything there is no limits, so no need to check color or type
+                room.stack += 4;
+                pickcolor = true;
+                break;
+            case "COLOR_CHANGE": //Cannot be put on PLUS_FOUR and PLUS_TWO, but can put it on anything else with different color, can be put after stack was taken
+                if ((room.stack > 0 && (room.current_card.type == "PLUS_FOUR" || room.current_card.type == "PLUS_TWO"))) { return; }
+                pickcolor = true;
+                break;
+            default:
+                if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
+        }
+
+        room.current_card = card; //Update current card
+        delete room.cards[socket.uid][data.id]; //Remove card from player
+        delete room.choose; //Clear choose if player was choosing
+        var player = room.players[socket.uid]; //Get player
+        player.count -= 1; //Decrease players card count
+
+        if (pickcolor) {
+            room.next_move = NextPlayer(room, socket.uid, next_by);
+        } else {
+            var next_move = NextPlayer(room, socket.uid, next_by);
+        }
+
+        var data = {
+            new_card: card, //new placed card
+            stack: room.stack, //Count of stacked cards
+            remove_card_id: data.id, //used to remove card from player
+            direction: room.direction, //What, direction normal or reverse
+            pickcolor: pickcolor, //Should player pick color
+            uno: (player.count == 1), //If it should be uno
+            count: {
+                uid: socket.uid, //Who's count changed
+                count: player.count, //What is new count
+            },
+        }
+
+        //Check if player won
+        if (room.players[socket.uid].count == 0) {
+            room.current_move = "";
+            room.winner = socket.uid;
+            data.winner = socket.uid;
+            data.timeout = config.NEXT_GAME_TIMEOUT;
+
+            io.sockets.to(socket.room).emit("place_card", data);
+            ResetRoom(socket.room);
+            return;
+        }
+
+        //Check if and who was blocked
+        if (next_by >= 2) {
+            data.blocked = NextPlayer(room, socket.uid, 1);
+        }
+
+        //Send data
+        io.sockets.to(socket.room).emit("place_card", data);
+
+        //If selecting color dont delay next move (will be delayed in "change_color") and delete previous delay, because it may have been set in "change_color"
+        if (pickcolor) {
+            if (room.turn_delay) {
+                clearTimeout(room.turn_delay);
+                delete room.turn_delay;
+            }
+            return;
+        }
+
+        //Will be a thing only in room with 2 players, after putting a block card
+        if (room.current_move == next_move) {
+            return;
+        }
+
+        //Delay next move
+        if (room.turn_delay) clearTimeout(room.turn_delay); //Reset timer every time player stack their card
+        room.turn_delay = setTimeout(function() {
+            delete room.turn_delay;
+            room.current_move = next_move;
+            io.sockets.to(socket.room).emit("next_move", {next_move: room.current_move});
+        }, config.TURN_DELAY);
+    });
+
+
+    //When changing color
+    socket.on("change_color", function(data) {
+        if (!socket.room || !socket.uid) { return; }
+
+        //Get current room
+        var room = rooms[socket.room];
+        if (!room || !room.started || !room.next_move || room.turn_delay || room.current_move != socket.uid) { return; }
+
+        //Check if current card is PLUS_FOUR or COLOR_CHANGE
+        if (room.current_card.type != "PLUS_FOUR" && room.current_card.type != "COLOR_CHANGE") {
+            return;
+        }
+
+        //Check sent information
+        if (!config.colors.includes(data.color)) {
+            return;
+        }
+
+        room.current_card = {color: data.color, type: room.current_card.type} //Update card
+        io.sockets.to(socket.room).emit("change_color", {type: room.current_card.type, color: data.color});
+
+        var next_move = room.next_move; //Create temporary variable
+        delete room.next_move; //Delete variable from room, so it doesnt affect "place_card" if we are stacking
+
+        //Delay next move after selecting color
+        room.turn_delay = setTimeout(function() {
+            room.current_move = next_move; //Set next move
+            delete room.turn_delay; //Delete delay variable
+            io.sockets.to(socket.room).emit("next_move", {next_move: next_move});
+        }, config.TURN_DELAY);
     });
 
 
@@ -392,7 +424,7 @@ io.sockets.on("connection", socket => {
         room.current_move = NextPlayer(room, socket.uid, 1);
         delete room.choose;
 
-        io.sockets.to(socket.room).emit("take_card", {next_move: room.current_move});
+        io.sockets.to(socket.room).emit("next_move", {next_move: room.current_move});
     });
 })
 

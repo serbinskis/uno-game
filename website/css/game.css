@@ -109,7 +109,7 @@
     }
 }
 
-/* Animation for color change show */
+/* Animation for color change and stack counter show */
 @keyframes PopIn {
     0% {
         transform: translate(-50%, -50%) scale(0, 0);
@@ -119,7 +119,7 @@
     }
 }
 
-/* Animation for color change hide */
+/* Animation for color change and stack counter hide */
 @keyframes PopOut {
     0% {
         transform: translate(-50%, -50%) scale(1, 1);
@@ -194,11 +194,11 @@
     transform: translate(-50%, -50%) scale(0, 0);
 }
 
-.ShowColors {
+.PopIn {
     animation: PopIn 0.1s linear forwards;
 }
 
-.HideColor {
+.PopOut {
     animation: PopOut 0.1s linear forwards;
 }
 
@@ -529,14 +529,12 @@
 
 #choose-bar {
     position: absolute;
-    left: 50%;
-    top: 50%;
     transform: translate(-50%, -50%);
 }
 
 #choose-card {
     position: absolute;
-    transform: translate(-50%, -50%) rotate(20deg) ;
+    transform: translate(-50%, -50%) rotate(20deg);
     width: 135px;
     height: 210px;
     box-shadow: 0px 0px 10px 5px #222;
@@ -565,6 +563,12 @@
     align-items: center;
     user-select: none;
     box-shadow: 0px 0px 10px 5px #222;
+
+    font-family: Uni_Sans_Heavy;
+    color: #fff;
+    font-size: 40px;
+    -webkit-text-stroke-width: 2.5px;
+    -webkit-text-stroke-color: black;
 }
 
 .choose-button:hover {
@@ -577,16 +581,41 @@
     transition: 0.3s
 }
 
-.text {
-    font-family: Uni_Sans_Heavy;
-    color: #fff;
-    font-size: 40px;
-    -webkit-text-stroke-width: 2.5px;
-    -webkit-text-stroke-color: black;
-}
-
 .ChooseAnimation {
     animation: ChooseAnimation 0.15s linear forwards;
 }
 
 /* [Choose part end] */
+
+/* [Stack counter start] */
+
+#stacking-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0, 0);
+}
+
+#stacking-image {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    margin-top: -175px;
+}
+
+#stacking-count {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    margin-top: -170px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-family: Uni_Sans_Heavy;
+    color: #fff;
+    font-size: 30px;
+    -webkit-text-stroke-width: 2px;
+    -webkit-text-stroke-color: black;
+}
+
+/* [Stack counter end] */

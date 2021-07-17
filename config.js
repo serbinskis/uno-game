@@ -4,7 +4,7 @@ module.exports = {
     MAX_CARDS: 100, //Max cards, so it would not crash game
     START_CARDS: 8, //Amount of cards every player will get
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts
-    TURN_DELAY: Math.round(1.5*1000), //Delay between next player will get his turn
+    TURN_DELAY: Math.round(1.5*1000), //Delay between turns
 
     DIRECTION_FORWARD: 1, //Normal direction
     DIRECTION_REVERSE: -1, //Reverse direction

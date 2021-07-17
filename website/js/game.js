@@ -91,6 +91,12 @@ socket.on("new_player", function(data) {
 });
 
 
+//Glow next move username
+socket.on("next_move", function(data) {
+    if (data.next_move) { SetPlaying(data.next_move); }
+});
+
+
 //Remove player
 socket.on("left", function(data) {
     //Remove player from list
@@ -115,6 +121,43 @@ socket.on("left", function(data) {
 });
 
 
+//When card taken
+socket.on("take_card", function(data) {
+    //Check if we are choosing the card
+    if (data.choose && data.cards) {
+        var [key, value] = Object.entries(data.cards)[0];
+        ShowChoose(key, value.color, value.type);
+        return;
+    }
+
+    //Create cards
+    if (data.cards) {
+        for (const [key, value] of Object.entries(data.cards)) {
+            CreateCard(key, value.color, value.type);
+        }
+
+        return;
+    }
+
+    //Hide stack, it should always be 0, cuz after taking card stack reset
+    if (data.stack == 0) {
+        HideStack();
+    }
+
+    //Glow next move username
+    if (data.next_move) {
+        SetPlaying(data.next_move);
+    }
+
+    //Change count and set overlay
+    if (data.count && data.count.do_update) {
+        if (data.count.uid == my_id) { PlaySound("resources/sounds/card_pickup.mp3"); }
+        SetOverlay(data.count.uid, "resources/overlays/PLUS_CARD.png");
+        $(`#count_${data.count.uid}`)[0].innerHTML = data.count.count;
+    }
+});
+
+
 //When card placed
 socket.on("place_card", function(data) {
     //Change arrow direction
@@ -132,13 +175,18 @@ socket.on("place_card", function(data) {
         $(`#count_${data.count.uid}`)[0].innerHTML = data.count.count;
     }
 
+    //Display stack, it should be bigger than 0
+    if (data.stack) {
+        ShowStack(data.stack);
+    }
+
     //Remove card and start color change
     if (data.count && data.count.uid == my_id) {
         $(`#${data.remove_card_id}`).remove();
         if (data.pickcolor && !data.winner) { ShowColors(); }
     }
 
-    //set the winner and return, no need to do anything else
+    //Display the winner and return, no need to do anything else
     if (data.winner) {
         setTimeout(function() {
             $(`#winner-container`).removeClass("hidden");
@@ -164,11 +212,6 @@ socket.on("place_card", function(data) {
         SetOverlay(data.blocked, "resources/overlays/BLOCK.png");
         if (data.blocked == my_id) { SetCover("resources/cover/SKIP.png"); }
     }
-
-    //Glow next move username
-    if (data.next_move) {
-        SetPlaying(data.next_move);
-    }
 });
 
 
@@ -177,39 +220,6 @@ socket.on("change_color", function(data) {
     //current_card = {color: data.color, type: data.type}
     $(".card-desk").last()[0].src = `resources/cards/gifs/${data.color}_${data.type}.gif`;
     PlaySound("resources/sounds/change_color.mp3");
-    SetPlaying(data.next_move);
-});
-
-
-//When card taken
-socket.on("take_card", function(data) {
-    //Check if we are choosing the card
-    if (data.choose && data.cards) {
-        var [key, value] = Object.entries(data.cards)[0];
-        ShowChoose(key, value.color, value.type);
-        return;
-    }
-
-    //Create cards
-    if (data.cards) {
-        for (const [key, value] of Object.entries(data.cards)) {
-            CreateCard(key, value.color, value.type);
-        }
-
-        return;
-    }
-
-    //Glow next move username
-    if (data.next_move) {
-        SetPlaying(data.next_move);
-    }
-
-    //Change count and set overlay
-    if (data.count && data.count.do_update) {
-        if (data.count.uid == my_id) { PlaySound("resources/sounds/card_pickup.mp3"); }
-        SetOverlay(data.count.uid, "resources/overlays/PLUS_CARD.png");
-        $(`#count_${data.count.uid}`)[0].innerHTML = data.count.count;
-    }
 });
 
 
@@ -227,47 +237,6 @@ function SetPlaying(uid) {
 
     $(".glow").removeClass("glow");
     $(`#username_${uid}`).addClass("glow");
-}
-
-
-//Play audio
-function PlaySound(FileName) {
-    var audio = new Audio(FileName);
-    audio.pause();
-    audio.currentTime = 0;
-    audio.play();
-}
-
-
-//Show color change
-function ShowColors() {
-    $("#color-select").removeClass("HideColor");
-    $("#color-select").addClass("ShowColors");
-}
-
-
-//Hide color change
-function HideColors() {
-    $("#color-select").removeClass("ShowColors");
-    $("#color-select").addClass("HideColor");
-}
-
-
-//Set overlay
-function SetOverlay(id, src) {
-    $(`#overlay_${id}`)[0].src = src;
-    $(`#overlay_${id}`).removeClass("popup");
-    void $(`#overlay_${id}`)[0].offsetWidth;
-    $(`#overlay_${id}`).addClass("popup");
-}
-
-
-//Set cover
-function SetCover(src) {
-    $("#cover")[0].src = src;
-    $("#cover").removeClass("popupCover");
-    void $("#cover")[0].offsetWidth;
-    $("#cover").addClass("popupCover");
 }
 
 
@@ -365,6 +334,47 @@ function CreateCard(id, color, type) {
 }
 
 
+//Play audio
+function PlaySound(FileName) {
+    var audio = new Audio(FileName);
+    audio.pause();
+    audio.currentTime = 0;
+    audio.play();
+}
+
+
+//Set overlay
+function SetOverlay(id, src) {
+    $(`#overlay_${id}`)[0].src = src;
+    $(`#overlay_${id}`).removeClass("popup");
+    void $(`#overlay_${id}`)[0].offsetWidth;
+    $(`#overlay_${id}`).addClass("popup");
+}
+
+
+//Set cover
+function SetCover(src) {
+    $("#cover")[0].src = src;
+    $("#cover").removeClass("popupCover");
+    void $("#cover")[0].offsetWidth;
+    $("#cover").addClass("popupCover");
+}
+
+
+//Show color change
+function ShowColors() {
+    $("#color-select").removeClass("PopOut");
+    $("#color-select").addClass("PopIn");
+}
+
+
+//Hide color change
+function HideColors() {
+    $("#color-select").removeClass("PopIn");
+    $("#color-select").addClass("PopOut");
+}
+
+
 //Start choose screen
 function ShowChoose(id, color, type) {
     $("#choose-container").removeClass("hidden");
@@ -379,11 +389,24 @@ function HideChoose() {
     $("#choose-card").removeClass("ChooseAnimation");
 }
 
+//Show stack counter
+function ShowStack(stack) {
+    $("#stacking-count")[0].innerHTML = `+${stack}`;
+    $("#stacking-container").removeClass("PopOut");
+    $("#stacking-container").addClass("PopIn");
+}
+
+//Hide stack counter
+function HideStack() {
+    $("#stacking-container").removeClass("PopIn");
+    $("#stacking-container").addClass("PopOut");
+}
 
 //Reset game
 function ClearGame() {
     //Hide some stuff
     HideChoose();
+    HideStack();
 
     //Hide winner
     $(`#winner-container`).addClass("hidden");
