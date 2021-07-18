@@ -6,6 +6,9 @@ module.exports = {
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts
     TURN_DELAY: Math.round(1.5*1000), //Delay between turns
 
+    UNO_CARD_AMOUNT: 2, //Amount of cards to take when someone presses uno
+    CAN_STACK_CARDS: true, //Can put same cards at one turn
+    CAN_JUMP_IN: true, //Currently usless
     DIRECTION_FORWARD: 1, //Normal direction
     DIRECTION_REVERSE: -1, //Reverse direction
 

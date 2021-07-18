@@ -155,7 +155,7 @@ io.sockets.on("connection", socket => {
                 delete rooms[socket_room];
             }
         }
-     });
+    });
 
 
     //Start game
@@ -218,7 +218,7 @@ io.sockets.on("connection", socket => {
         var player_cards = room.cards[socket.uid];
         if (!player_cards) { return; }
 
-        //Check if player has cards to play, and if he is just skiping his turn
+        //Check if player has cards to play, and if he is just skipping his turn
         var can_play_card_before = false;
         for (const [key, value] of Object.entries(player_cards)) {
             if (canPlayCard(room, value)) {
@@ -260,7 +260,7 @@ io.sockets.on("connection", socket => {
 
     //When placing card
     socket.on("place_card", data => {
-        if (!socket.room || !socket.uid) { return; }
+        if (!socket.room || !socket.uid || !data.id) { return; }
 
         //Get current room
         var room = rooms[socket.room];
@@ -273,7 +273,7 @@ io.sockets.on("connection", socket => {
         //Check if player has time to stack card and if card is same color and type
         if (room.turn_delay) {
             var card_color = card.color != "ANY" ? card.color : room.current_card.color;
-            if ((card_color != room.current_card.color) || (card.type != room.current_card.type)) { return; }
+            if (!room.can_stack_cards || (card_color != room.current_card.color) || (card.type != room.current_card.type)) { return; }
         }
 
         //Store information here
@@ -324,11 +324,14 @@ io.sockets.on("connection", socket => {
             remove_card_id: data.id, //used to remove card from player
             direction: room.direction, //What, direction normal or reverse
             pickcolor: pickcolor, //Should player pick color
-            uno: (player.count == 1), //If it should be uno
-            count: {
-                uid: socket.uid, //Who's count changed
-                count: player.count, //What is new count
-            },
+            player_id: socket.uid, //Who's playing
+            count: player.count, //What is new count
+        }
+
+        //If it should be uno
+        if (player.count == 1) {
+            room.uno = socket.uid;
+            data.uno = socket.uid;
         }
 
         //Check if player won
@@ -354,7 +357,7 @@ io.sockets.on("connection", socket => {
         //If selecting color dont delay next move (will be delayed in "change_color") and delete previous delay, because it may have been set in "change_color"
         if (pickcolor) {
             if (room.turn_delay) {
-                clearTimeout(room.turn_delay);
+                timer.stop(room.turn_delay);
                 delete room.turn_delay;
             }
             return;
@@ -365,11 +368,17 @@ io.sockets.on("connection", socket => {
             return;
         }
 
-        //Delay next move
-        if (room.turn_delay) clearTimeout(room.turn_delay); //Reset timer every time player stack their card
-        room.turn_delay = setTimeout(function() {
-            delete room.turn_delay;
-            room.current_move = next_move;
+        //Reset timer every time player stack their card
+        if (room.turn_delay) {
+            timer.change(room.turn_delay, config.TURN_DELAY);
+            return;
+        } 
+
+        //Start timer between next player will get his turn
+        room.turn_delay = timer.start(function() {
+            room.current_move = next_move; //Set next move
+            delete room.turn_delay; //Delete delay variable
+            delete room.uno; //Clear uno variable
             io.sockets.to(socket.room).emit("next_move", {next_move: room.current_move});
         }, config.TURN_DELAY);
     });
@@ -377,7 +386,7 @@ io.sockets.on("connection", socket => {
 
     //When changing color
     socket.on("change_color", function(data) {
-        if (!socket.room || !socket.uid) { return; }
+        if (!socket.room || !socket.uid || !data.color) { return; }
 
         //Get current room
         var room = rooms[socket.room];
@@ -400,9 +409,10 @@ io.sockets.on("connection", socket => {
         delete room.next_move; //Delete variable from room, so it doesnt affect "place_card" if we are stacking
 
         //Delay next move after selecting color
-        room.turn_delay = setTimeout(function() {
+        room.turn_delay = timer.start(function() {
             room.current_move = next_move; //Set next move
             delete room.turn_delay; //Delete delay variable
+            delete room.uno; //Clear uno variable
             io.sockets.to(socket.room).emit("next_move", {next_move: next_move});
         }, config.TURN_DELAY);
     });
@@ -410,7 +420,7 @@ io.sockets.on("connection", socket => {
 
     //When changing color
     socket.on("save_card", function(data) {
-        if (!socket.room || !socket.uid) { return; }
+        if (!socket.room || !socket.uid || !data.id) { return; }
 
         //Get current room
         var room = rooms[socket.room];
@@ -426,7 +436,54 @@ io.sockets.on("connection", socket => {
 
         io.sockets.to(socket.room).emit("next_move", {next_move: room.current_move});
     });
-})
+
+    //When changing color
+    socket.on("uno_press", function() {
+        if (!socket.room || !socket.uid) { return; }
+
+        //Get current room
+        var room = rooms[socket.room];
+        if (!room || !room.started || !room.uno) { return; }
+
+        if (room.uno == socket.uid) {
+            delete room.uno; //Clear uno and reset timer
+            if (room.turn_delay) { timer.change(room.turn_delay, config.TURN_DELAY); }
+            io.sockets.to(socket.room).emit("uno_press"); //Remove uno button
+            return;
+        }
+
+        //Get uno player
+        var player = room.players[room.uno];
+        if (!player) { return; }
+
+        //Get uno players cards
+        var player_cards = room.cards[room.uno];
+        if (!player_cards) { return; }
+
+        //Create variable to store and then send cards to player
+        var room_uno = room.uno;
+        delete room.uno; //Clear uno variable
+        var cards = {}
+
+        for (var i = 0; i < config.UNO_CARD_AMOUNT; i++) {
+            if (player.count >= room.max_cards) { break; }
+            var uid = uuidv4().replace(/-/g, ''); //Generate uid
+            var card = GenerateCard(true) //Generate card
+
+            cards[uid] = card; //This will be sent to player
+            player_cards[uid] = card; //Save also on server side
+            player.count += 1; //Increase player count
+        }
+
+        //Get player from uid and send him new cards
+        var clientSocket = GetPlayerSocket(socket.room, room_uno);
+        if (clientSocket) { clientSocket.emit("take_card", {cards: cards}); }
+
+        //Update card count for other players
+        io.sockets.to(socket.room).emit("uno_press", {id: room_uno, count: player.count});
+        if (room.turn_delay) { timer.finish(room.turn_delay); }
+    });
+});
 
 
 //============================================================================================================================================================
@@ -449,6 +506,48 @@ process.on('SIGINT', function() {
 //Wait function
 async function Wait(milleseconds) {
 	return new Promise(resolve => setTimeout(resolve, milleseconds))
+}
+
+
+//Yonki sponky stolen code is now my and modified xD
+timer = {
+    timers: {},
+    start: function(cb, gap, id) {
+        var key = id ? id : uuidv4().replace(/-/g, '');
+        timer.timers[key] = [setTimeout(function() {timer.finish(key)}, gap), cb];
+        return key;
+    },
+    finish: function(id) {
+        if(!timer.timers[id]) { return; };
+        clearTimeout(timer.timers[id][0]);
+        timer.timers[id][1]();
+        delete timer.timers[id];
+    },
+    stop: function(id) {
+        if(!timer.timers[id]) { return; };
+        clearTimeout(timer.timers[id][0]);
+        delete timer.timers[id];
+    },
+    change: function(id, newgap) {
+        if(!timer.timers[id]) { return; };
+        clearTimeout(timer.timers[id][0]);
+        timer.start(timer.timers[id][1], newgap, id);
+    }
+};
+
+
+//Get player socket from its uid
+function GetPlayerSocket(room, uid) {
+    //Get players from room
+    const clients = io.sockets.adapter.rooms.get(room);
+
+    //Loop through players and compare
+    for (const cid of clients) {
+        var clientSocket = io.sockets.sockets.get(cid);
+        if (clientSocket.uid == uid) { return clientSocket; }
+    }
+
+    return null;
 }
 
 
@@ -521,6 +620,7 @@ async function CreateAvatar(buffer, uid) {
 function CreateRoom(owner) {
     return {
         owner: owner,
+        can_stack_cards: config.CAN_STACK_CARDS,
         direction: config.DIRECTION_FORWARD,
         start_cards: config.START_CARDS,
         max_players: config.MAX_PLAYERS,

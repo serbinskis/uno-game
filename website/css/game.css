@@ -149,6 +149,19 @@
     }
 }
 
+/* Animation for choose */
+@keyframes GlowAnimation {
+    0% {
+        filter: drop-shadow(0px 0px 20px var(--yellow));
+    }
+    50% {
+        filter: drop-shadow(0px 0px 5px var(--yellow));
+    }
+    100% {
+        filter: drop-shadow(0px 0px 20px var(--yellow));
+    }
+}
+
 #game-container {
     font-family: Uni_Sans_Heavy;
 }
@@ -242,7 +255,7 @@
     border-radius: 5px;
     transition: 0.2s;
     transform: scale(0.8, 0.8);
-    box-shadow: 0px 0px 5px 5px #000;
+    box-shadow: 0px 0px 5px 5px var(--black);
 }
 
 .color:hover {
@@ -351,7 +364,7 @@
 }
 
 .glow {
-    text-shadow: 0px 0px 20px #FEED7A, 0px 0px 20px #FEED7A, 0px 0px 20px #FEED7A;
+    text-shadow: 0px 0px 20px var(--yellow), 0px 0px 20px var(--yellow), 0px 0px 20px var(--yellow);
 }
 
 .count {
@@ -434,7 +447,7 @@
     width: 33%;
     height: auto;
     border-radius: 10%;
-    box-shadow: 0vw 0vw 1.25vw 0.87vw #FFDE16, 0vw 2.5vw 1.25vw 1.25vw rgb(34, 34, 34, 0.3);
+    box-shadow: 0vw 0vw 1.25vw 0.87vw var(--yellow), 0vw 2.5vw 1.25vw 1.25vw rgb(34, 34, 34, 0.3);
 }
 
 #winner-avatar {
@@ -483,14 +496,14 @@
     box-shadow: 0vw 0vw 0.8vw 0.4vw #222;
 
     font-family: Uni_Sans_Heavy;
-    color: #fff;
+    color: var(--white);
     font-size: 3vw;
     -webkit-text-stroke-width: 0.2vw;
-    -webkit-text-stroke-color: black;
+    -webkit-text-stroke-color: var(--black);
 }
 
 #winner-return:hover {
-    box-shadow: 0vw 0vw 0.8vw 0.4vw #FFDE16;
+    box-shadow: 0vw 0vw 0.8vw 0.4vw var(--yellow);
     transition: 0.3s;
 }
 
@@ -505,10 +518,10 @@
     top: 50%;
     transform: translate(-50%, -50%);
     width: fit-content;
-    color: #fff;
+    color: var(--white);
     font-size: 4vw;
     -webkit-text-stroke-width: 0.3vw;
-    -webkit-text-stroke-color: black;
+    -webkit-text-stroke-color: var(--black);
     text-align: center;
 }
 
@@ -565,20 +578,20 @@
     box-shadow: 0px 0px 10px 5px #222;
 
     font-family: Uni_Sans_Heavy;
-    color: #fff;
+    color: var(--white);
     font-size: 40px;
     -webkit-text-stroke-width: 2.5px;
-    -webkit-text-stroke-color: black;
+    -webkit-text-stroke-color: var(--black);
 }
 
 .choose-button:hover {
-    box-shadow: 0px 0px 10px 5px #FFDE16;
-    transition: 0.3s
+    box-shadow: 0px 0px 10px 5px var(--yellow);
+    transition: 0.3s;
 }
 
 .choose-button:active {
     filter: grayscale(25%);
-    transition: 0.3s
+    transition: 0.3s;
 }
 
 .ChooseAnimation {
@@ -619,3 +632,27 @@
 }
 
 /* [Stack counter end] */
+
+/* [UNO start] */
+
+#uno-wrapper {
+    position: absolute;
+    width: 220px;
+    height: 190px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(.7);
+    margin-left: 260px;
+}
+
+#uno {
+    transition: .1s;
+    animation: GlowAnimation 1s infinite linear;
+}
+
+#uno:active {
+    transition: 0.3s;
+    filter: grayscale(25%);
+}
+
+/* [UNO end] */

@@ -11,6 +11,12 @@ $("#carddeck").click(function(e) {
 });
 
 
+//When pressing UNO
+$("#uno").click(function() {
+    socket.emit("uno_press");
+});
+
+
 //Return to lobby
 $("#winner-return").click(function(e) {
     location.reload();
@@ -93,7 +99,10 @@ socket.on("new_player", function(data) {
 
 //Glow next move username
 socket.on("next_move", function(data) {
-    if (data.next_move) { SetPlaying(data.next_move); }
+    if (data.next_move) {
+        SetPlaying(data.next_move);
+        $("#uno")[0].style = "transform: scale(0);"
+    }
 });
 
 
@@ -171,17 +180,17 @@ socket.on("place_card", function(data) {
     }
 
     //Change count
-    if (data.count) {
-        $(`#count_${data.count.uid}`)[0].innerHTML = data.count.count;
+    if (data.player_id && !isNaN(data.count)) {
+        $(`#count_${data.player_id}`)[0].innerHTML = data.count;
     }
 
     //Display stack, it should be bigger than 0
-    if (data.stack) {
+    if (data.stack > 0) {
         ShowStack(data.stack);
     }
 
     //Remove card and start color change
-    if (data.count && data.count.uid == my_id) {
+    if (data.player_id == my_id) {
         $(`#${data.remove_card_id}`).remove();
         if (data.pickcolor && !data.winner) { ShowColors(); }
     }
@@ -204,8 +213,12 @@ socket.on("place_card", function(data) {
         return;
     }
 
-    if (data.uno) {
-        //add uno button somewhere, implement this idea later
+    //Set uno for specific player
+    if (data.player_id && data.uno) {
+        $("#uno")[0].player_id = data.player_id;
+        $("#uno")[0].style = "transform: scale(1);"
+    } else {
+        $("#uno")[0].style = "transform: scale(0);"
     }
 
     if (data.blocked) {
@@ -220,6 +233,17 @@ socket.on("change_color", function(data) {
     //current_card = {color: data.color, type: data.type}
     $(".card-desk").last()[0].src = `resources/cards/gifs/${data.color}_${data.type}.gif`;
     PlaySound("resources/sounds/change_color.mp3");
+});
+
+
+//Update info about uno button
+socket.on("uno_press", function(data) {
+    console.log(data);
+    $("#uno")[0].style = "transform: scale(0);"
+
+    if (data && data.id && !isNaN(data.count)) {
+        $(`#count_${data.id}`)[0].innerHTML = data.count;
+    }
 });
 
 
@@ -402,6 +426,7 @@ function HideStack() {
     $("#stacking-container").addClass("PopOut");
 }
 
+
 //Reset game
 function ClearGame() {
     //Hide some stuff
@@ -420,11 +445,12 @@ function ClearGame() {
         this.remove();
     });
 
-    //Remove all player and desk cards
+    //Remove all players cards
     $(".card").each(function() {
         this.remove();
     });
 
+    //Remove all cards from desk
     $(".card-desk").each(function() {
         this.remove();
     });
