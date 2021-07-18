@@ -38,11 +38,9 @@ body {
 /*[Crown]*/
 .crown::before {
     display: inline-block;
-    padding-right: 5px;
+    padding-right: 10px;
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
     content: "\f521";
     color: var(--dark_yellow);
-    -webkit-text-stroke-width: 1px;
-    -webkit-text-stroke-color: var(--black);
 }

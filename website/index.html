@@ -43,8 +43,8 @@
     </div>
 
     <div id="players"></div>
-    <img class="arrow directionRight" id="arrow" src="resources/direction.png" style="visibility: hidden;">
-    <img draggable="false" src="resources/desk.png" title="Take +1 Card" id="carddeck" class="disabled">
+    <img id="arrow" class="arrow directionRight" src="resources/direction.png" style="visibility: hidden;">
+    <img id="carddeck" class="disabled" src="resources/desk.png" draggable="false" title="Take +1 Card">
     <div id="cards"></div>
 
     <div id="color-select">
@@ -55,12 +55,12 @@
     </div>
 
     <div id="uno-wrapper">
-      <img id="uno" src="resources/UNO.png" style="transform: scale(0);">
+      <img id="uno" src="resources/UNO.png" draggable="false" style="transform: scale(0);">
     </div>
 
     <div class="hidden" id="choose-container">
-      <img id="choose-bar" src="resources/bar.png">
-      <img id="choose-card">
+      <img id="choose-bar" src="resources/bar.png" draggable="false">
+      <img id="choose-card" draggable="false">
       <span class="choose-button" id="choose-place">Place</span>
       <span class="choose-button" id="choose-save">Save</span>
     </div>
@@ -71,9 +71,9 @@
       <div id="winner-wrapper">
         <label class="winner-title" id="winner-timeout"></label>
         <label class="winner-title" id="winner-username"></label>
-        <img id="winner-card" src="resources/winner.png">
-        <img id="winner-avatar">
-        <img id="winner-crown" src="resources/crown.png">
+        <img id="winner-card" src="resources/winner.png" draggable="false">
+        <img id="winner-avatar" draggable="false">
+        <img id="winner-crown" src="resources/crown.png" draggable="false">
         <span id="winner-return">Return</span>
       </div>
     </div>

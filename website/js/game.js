@@ -238,7 +238,6 @@ socket.on("change_color", function(data) {
 
 //Update info about uno button
 socket.on("uno_press", function(data) {
-    console.log(data);
     $("#uno")[0].style = "transform: scale(0);"
 
     if (data && data.id && !isNaN(data.count)) {
@@ -394,6 +393,7 @@ function ShowColors() {
 
 //Hide color change
 function HideColors() {
+    if (!$("#color-select").hasClass("PopIn")) { return; }
     $("#color-select").removeClass("PopIn");
     $("#color-select").addClass("PopOut");
 }
@@ -422,6 +422,7 @@ function ShowStack(stack) {
 
 //Hide stack counter
 function HideStack() {
+    if (!$("#stacking-container").hasClass("PopIn")) { return; }
     $("#stacking-container").removeClass("PopIn");
     $("#stacking-container").addClass("PopOut");
 }
@@ -430,6 +431,7 @@ function HideStack() {
 //Reset game
 function ClearGame() {
     //Hide some stuff
+    HideColors()
     HideChoose();
     HideStack();
 
@@ -458,6 +460,7 @@ function ClearGame() {
     //Reset arrow direction and style
     $("#arrow")[0].className = "arrow directionRight";
     $("#arrow")[0].style = "visibility: hidden;";
+    $("#uno")[0].style = "transform: scale(0);"
 
     //Create UNO card
     var img = document.createElement("img");

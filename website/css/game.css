@@ -329,10 +329,26 @@
     position: relative;
     text-align: right;
     animation: SlideLeft 0.3s linear;
+    font-size: 25px;
+    color: white;
+    -webkit-text-stroke-width: 1.5px;
+    -webkit-text-stroke-color: var(--black);
 }
 
-.remove {
-    animation: SlideRight 0.3s linear forwards;
+.username {
+    /* border: 2px solid purple; */
+    cursor: url(../resources/arrow.png), auto;
+}
+
+.count {
+    /* border: 2px solid yellow; */
+    display: inline-block;
+    text-align: center;
+    width: 37px;
+    line-height: 60px;
+    padding-top: 5px;
+    padding-right: 10px;
+    cursor: url(../resources/arrow.png), auto;
 }
 
 .avatar {
@@ -341,6 +357,10 @@
     margin-left: 10px;
     margin-right: 10px;
     margin-bottom: 10px;
+}
+
+.remove {
+    animation: SlideRight 0.3s linear forwards;
 }
 
 .overlay {
@@ -357,24 +377,8 @@
     animation: PopUp 1s linear forwards;
 }
 
-.username {
-    /* border: 2px solid purple; */
-    vertical-align: middle;
-    cursor: url(../resources/arrow.png), auto;
-}
-
 .glow {
     text-shadow: 0px 0px 20px var(--yellow), 0px 0px 20px var(--yellow), 0px 0px 20px var(--yellow);
-}
-
-.count {
-    /* border: 2px solid yellow; */
-    display: inline-block;
-    text-align: center;
-    width: 37px;
-    line-height: 60px;
-    padding-top: 5px;
-    cursor: url(../resources/arrow.png), auto;
 }
 
 #cards-desk {
@@ -488,7 +492,7 @@
     border-radius: 1.15vw;
     background-repeat: no-repeat;
     background-size: cover;
-    background-image: url("../resources/blue_button.png");
+    background-image: url("../resources/green_button.png");
     display: flex;
     justify-content: center;
     align-items: center;
