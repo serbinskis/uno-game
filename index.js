@@ -356,10 +356,8 @@ io.sockets.on("connection", socket => {
 
         //If selecting color dont delay next move (will be delayed in "change_color") and delete previous delay, because it may have been set in "change_color"
         if (pickcolor) {
-            if (room.turn_delay) {
-                timer.stop(room.turn_delay);
-                delete room.turn_delay;
-            }
+            timer.stop(room.turn_delay);
+            delete room.turn_delay;
             return;
         }
 
