@@ -422,7 +422,7 @@ io.sockets.on("connection", socket => {
 
         //Get current room
         var room = rooms[socket.room];
-        if (!room || !room.started || room.current_move != socket.uid) { return; }
+        if (!room || !room.started || room.current_move != socket.uid || !room.choose) { return; }
 
         //Check if specific card exists
         var card = room.cards[socket.uid][data.id];
