@@ -242,13 +242,13 @@ io.sockets.on("connection", socket => {
             take_count -= 1; //Decrease amount to take
         }
 
-        //If player was taking stack or had card to play skip choose screen
+        //If player was taking stack or had card to play skip his turn
         if (room.stack > 0 || can_play_card_before) {
             can_play_card_after = false;
             room.current_move = NextPlayer(room, socket.uid, 1);
         } else {
-            room.choose = can_play_card_after;
-            room.current_move = socket.uid;
+            room.choose = can_play_card_after;  //If player got playable card, ask him to play or save
+            room.current_move = (can_play_card_after || config.DRAW_TO_MATCH) ? socket.uid : NextPlayer(room, socket.uid, 1); //Dont change current move if player is choosing
         }
 
         room.stack = 0;

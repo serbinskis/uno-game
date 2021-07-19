@@ -7,8 +7,9 @@ module.exports = {
     TURN_DELAY: Math.round(1.5*1000), //Delay between turns
 
     UNO_CARD_AMOUNT: 2, //Amount of cards to take when someone presses uno
+    DRAW_TO_MATCH: true, //Draw cards until get playable one
     CAN_STACK_CARDS: true, //Can put same cards at one turn
-    CAN_JUMP_IN: true, //Currently usless
+    CAN_JUMP_IN: true, //Can jump in when cards ar same - Currently usless
     DIRECTION_FORWARD: 1, //Normal direction
     DIRECTION_REVERSE: -1, //Reverse direction
 
