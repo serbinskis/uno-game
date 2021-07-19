@@ -3,8 +3,8 @@ module.exports = {
     MAX_PLAYERS: 10, //Maximum amount of players
     MAX_CARDS: 100, //Max cards, so it would not crash game
     START_CARDS: 8, //Amount of cards every player will get
-    NEXT_GAME_TIMEOUT: 10, //Time before next game starts
-    TURN_DELAY: Math.round(1.5*1000), //Delay between turns
+    NEXT_GAME_TIMEOUT: 10, //Time before next game starts (seconds)
+    TURN_DELAY: Math.round(1.5*1000), //Delay between turns (ms)
 
     UNO_CARD_AMOUNT: 2, //Amount of cards to take when someone presses uno
     DRAW_TO_MATCH: true, //Draw cards until get playable one
