@@ -83,7 +83,8 @@
 }
 
 #login-form input[type=submit] {
-    width: 100%;
+    width: calc(100% - 45px);
+    height: 40px;
     background: #1891d5;
     border: none;
     color: #FFF;
@@ -97,6 +98,15 @@
     font-weight: 900;
     font-size: 14px;
     cursor: url(../resources/arrow.png), auto;
+    transition: 0.3s;
+}
+
+#login-form input[type=submit]:hover {
+    filter: brightness(90%);
+}
+
+#login-form input[type=submit]:active {
+    filter: brightness(85%);
 }
 
 #login-form #creator {
@@ -109,3 +119,55 @@
     margin-left: -10px;
     text-align: center;
 }
+
+#login-form .settings {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    margin-top: 10px;
+    margin-left: 5px;
+    line-height: 40px;
+    border-radius: 3px;
+    text-align: center;
+    background: #1891d5;
+    color: white;
+    transition: 0.3s;
+}
+
+#login-form .settings:hover {
+    filter: brightness(90%);
+}
+
+#login-form .settings:active {
+    filter: brightness(85%);
+}
+
+#login-form .settings i {
+    font-size: 16px;
+    line-height: 40px;
+}
+
+/* [Settings part start] */
+
+#settings-container .setting-arrow {
+    transition: 0.3s;
+}
+
+#settings-container .setting-arrow:hover {
+    filter: brightness(90%);
+}
+
+#settings-container .setting-arrow:active {
+    filter: brightness(80%);
+}
+
+#settings-container .setting-name {
+    width: 350px;
+    margin: 0 0 -2px 0;
+}
+
+#settings-container .setting-state {
+    margin: 0 auto 0 auto;
+}
+
+/* [Settings part end] */

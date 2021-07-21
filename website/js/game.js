@@ -1,12 +1,30 @@
 //Variables
 var my_id = "";
-//var owner_id = "";
+var owner_id = "";
 //var current_move = "";
 //var current_card = {color: "ANY", type: "UNO_CARD"};
 
 
+//Settings button
+$("#game-container #settings").click(function() {
+    ShowSettings();
+});
+
+
+//Close settings
+$("#game-container #setting-close").click(function() {
+    HideSettings();
+});
+
+
+//Close settings
+$("#game-container #setting-leave").click(function() {
+    location.reload();
+});
+
+
 //Take card from stack
-$("#carddeck").click(function(e) {
+$("#carddeck").click(function() {
     socket.emit("take_card");
 });
 
@@ -18,20 +36,20 @@ $("#uno").click(function() {
 
 
 //Return to lobby
-$("#winner-return").click(function(e) {
+$("#winner-return").click(function() {
     location.reload();
 });
 
 
 //Place card when pressing place
-$("#choose-place").click(function(e) {
+$("#choose-place").click(function() {
     HideChoose();
     socket.emit("place_card", {id: $("#choose-card")[0].card.id});
 });
 
 
 //Save card when pressing save
-$("#choose-save").click(function(e) {
+$("#choose-save").click(function() {
     HideChoose();
     var card = $("#choose-card")[0].card;
     CreateCard(card.id, card.color, card.type);
@@ -78,7 +96,7 @@ socket.on("join", function(data) {
 
     ClearGame();
     if (data.my_id) { my_id = data.my_id; }
-    //owner_id = data.owner;
+    owner_id = data.owner;
 
     $("#login-container").addClass("hidden");
     $("#game-container").removeClass("hidden");
@@ -94,6 +112,13 @@ socket.on("join", function(data) {
 //Info about new player
 socket.on("new_player", function(data) {
     CreatePlayer(data.username, data.id, data.avatar, data.count);
+    PrepareSettings();
+});
+
+
+//Enable cards for player when its posible to jump in
+socket.on("can_jump_in", function() {
+    $("#cards").removeClass("disabled");
 });
 
 
@@ -102,6 +127,11 @@ socket.on("next_move", function(data) {
     if (data.next_move) {
         SetPlaying(data.next_move);
         $("#uno")[0].style = "transform: scale(0);"
+    }
+
+    if (data.jumped_in) {
+        SetOverlay(data.next_move, "resources/overlays/JUMP_IN.png"); //Set overlay for player who jumped in
+        if (data.jumped_in == my_id) { SetCover("resources/covers/JUMP_IN.png"); } //Set cover for player who lost turn
     }
 });
 
@@ -114,18 +144,28 @@ socket.on("left", function(data) {
             $(`#${data.id}`)[0].remove();
         });
 
+        $(`#${data.id}`)[0].left = true;
         $(`#${data.id}`).addClass("remove")
     }
 
     //Set new owner
     if (data.new_owner) {
+        owner_id = data.new_owner;
         $(".crown").removeClass("crown");
         $(`#username_${data.new_owner}`).addClass("crown");
     }
 
+    //Recreate setting player list
+    PrepareSettings();
+
     //Set new playing
     if (data.current_move) {
         SetPlaying(data.current_move);
+    }
+
+    //Remove stack
+    if (data.stack == 0) {
+        HideStack();
     }
 });
 
@@ -223,7 +263,7 @@ socket.on("place_card", function(data) {
 
     if (data.blocked) {
         SetOverlay(data.blocked, "resources/overlays/BLOCK.png");
-        if (data.blocked == my_id) { SetCover("resources/cover/SKIP.png"); }
+        if (data.blocked == my_id) { SetCover("resources/covers/SKIP.png"); }
     }
 });
 
@@ -243,6 +283,13 @@ socket.on("uno_press", function(data) {
     if (data && data.id && !isNaN(data.count)) {
         $(`#count_${data.id}`)[0].innerHTML = data.count;
     }
+});
+
+
+//When player get kicked
+socket.on("kick", function(data) {
+    alert(data.message);
+    location.reload();
 });
 
 
@@ -302,6 +349,57 @@ function CreatePlayer(username, id, src, count) {
 }
 
 
+//Create player in settings
+function CreateSettingPlayer(username, id, src) {
+    var divElement = document.createElement("div");
+    divElement.className = "setting setting-player";
+
+    var avatarElement = document.createElement("img");
+    avatarElement.className = "setting-avatar";
+    avatarElement.src = src;
+    avatarElement.draggable = false;
+
+    var usernameElement = document.createElement("label");
+    usernameElement.className = "setting-username";
+    usernameElement.innerHTML = username;
+
+    var kickElement = document.createElement("span");
+    kickElement.className = "button kick";
+    kickElement.innerHTML = "Kick";
+
+    kickElement.addEventListener("click", function() {
+        socket.emit("kick", {id: id});
+    }, false);
+
+    if (my_id == id) { kickElement.className += " disabled"; }
+    if (my_id != owner_id) { kickElement.className += " invisible"; }
+
+    divElement.appendChild(avatarElement);
+    divElement.appendChild(usernameElement);
+    divElement.appendChild(kickElement);
+    $("#game-container #settings-wrapper")[0].appendChild(divElement);
+}
+
+
+//Create card on screen
+function CreateCard(id, color, type) {
+    var img = document.createElement("img");
+
+    img.className = "card";
+    img.id = id;
+    img.color = color;
+    img.type = type;
+    img.src = `resources/cards/${color}_${type}.png`;
+    img.draggable = false;
+
+    img.addEventListener("click", function() {
+        socket.emit("place_card", {id: id});
+    }, false);
+
+    $('#cards')[0].appendChild(img);
+}
+
+
 //Create card on desk
 function PutCard(card) {
     //current_card = card;
@@ -335,25 +433,6 @@ function PutCard(card) {
         default:
             PlaySound("resources/sounds/card_place.mp3");
     }
-}
-
-
-//Create card on screen
-function CreateCard(id, color, type) {
-    var img = document.createElement("img");
-
-    img.className = "card";
-    img.id = id;
-    img.color = color;
-    img.type = type;
-    img.src = `resources/cards/${color}_${type}.png`;
-    img.draggable = false;
-
-    img.addEventListener("click", function() {
-        socket.emit("place_card", {id: id});
-    }, false);
-
-    $('#cards')[0].appendChild(img);
 }
 
 
@@ -428,12 +507,47 @@ function HideStack() {
 }
 
 
+//Show settings
+function ShowSettings() {
+    PrepareSettings();
+    $("#game-container #settings-container")[0].style = "transform: translate(-50%, -50%) scale(1);"
+}
+
+
+//Prepare settings
+function PrepareSettings() {
+    var scrollTop = $("#game-container #settings-wrapper")[0].scrollTop;
+
+    $(".setting-player").each(function() {
+        this.remove();
+    });
+
+    $(".username").each(function() {
+        if (!$(this).parent()[0].left) {
+            var username = this.innerHTML;
+            var id = this.id.replace("username_", "");
+            var src = $(`#avatar_${id}`)[0].src;
+            CreateSettingPlayer(username, id, src);
+        }
+    });
+
+    $("#game-container #settings-wrapper")[0].scrollTop = scrollTop;
+}
+
+
+//Hide settings
+function HideSettings() {
+    $("#game-container #settings-container")[0].style = "transform: translate(-50%, -50%) scale(0);"
+}
+
+
 //Reset game
 function ClearGame() {
     //Hide some stuff
     HideColors()
     HideChoose();
     HideStack();
+    HideSettings();
 
     //Hide winner
     $(`#winner-container`).addClass("hidden");

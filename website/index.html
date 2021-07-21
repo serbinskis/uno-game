@@ -24,13 +24,57 @@
       </div>
 
       <input type="submit" id="connect" value="Connect">
+      <span class="settings"><i class="fas fa-cog"></i></span>
       <a id="creator" href="https://wobbychip.github.io" target="_blank">Created By WobbyChip</a>
+    </div>
+
+    <div id="settings-container">
+      <span class="setting-button" id="setting-close" title="Close"><i class="fas fa-times"></i></span>
+      <div id="settings-wrapper">
+        <div class="setting" id="max-players" title="Amount of maximum players in one room.">
+          <label class="setting-name">Max Players</label>
+          <img class="arrow-left setting-arrow" draggable="false" src="resources/arrow_left.png">
+          <label class="setting-state">0</label>
+          <img class="arrow-right setting-arrow" draggable="false" src="resources/arrow_right.png">
+        </div>
+        <div class="setting" id="max-cards" title="Maximum amount of cards a player can hold.">
+          <label class="setting-name">Max Cards</label>
+          <img class="arrow-left setting-arrow" draggable="false" src="resources/arrow_left.png">
+          <label class="setting-state">0</label>
+          <img class="arrow-right setting-arrow" draggable="false" src="resources/arrow_right.png">
+        </div>
+        <div class="setting" id="start-cards" title="Amount of cards a player starts with.">
+          <label class="setting-name">Start Cards</label>
+          <img class="arrow-left setting-arrow" draggable="false" src="resources/arrow_left.png">
+          <label class="setting-state">0</label>
+          <img class="arrow-right setting-arrow" draggable="false" src="resources/arrow_right.png">
+        </div>
+        <div class="setting" id="draw-to-match" title="Player will take cards until he will get matching one.">
+          <label class="setting-name">Draw To Match</label>
+          <img class="arrow-left setting-arrow" draggable="false" src="resources/arrow_left.png">
+          <label class="setting-state">ON</label>
+          <img class="arrow-right setting-arrow" draggable="false" src="resources/arrow_right.png">
+        </div>
+        <div class="setting" id="stack-cards" title="Player can place two or more same cards at one turn.">
+          <label class="setting-name">Stack Cards</label>
+          <img class="arrow-left setting-arrow" draggable="false" src="resources/arrow_left.png">
+          <label class="setting-state">ON</label>
+          <img class="arrow-right setting-arrow" draggable="false" src="resources/arrow_right.png">
+        </div>
+        <div class="setting" id="jump-in" title="If player has same card as other player he can jump in and take turn.">
+          <label class="setting-name">Jump In</label>
+          <img class="arrow-left setting-arrow" draggable="false" src="resources/arrow_left.png">
+          <label class="setting-state">ON</label>
+          <img class="arrow-right setting-arrow" draggable="false" src="resources/arrow_right.png">
+        </div>
+      </div>
     </div>
   </div>
 
 
   <div id="game-container" class="hidden">
     <img draggable="false" src="resources/gameBackground.jpg" id="bgimg">
+    <img draggable="false" src="resources/settings.png" id="settings">
     <img draggable="false" src="resources/table.png" id="table">
 
     <div id="cards-desk">
@@ -66,6 +110,12 @@
     </div>
 
     <img id="cover">
+
+    <div id="settings-container">
+      <span class="setting-button" id="setting-close" title="Close"><i class="fas fa-times"></i></span>
+      <span class="setting-button" id="setting-leave" title="Leave"><i class="fas fa-sign-out-alt"></i></span>
+      <div id="settings-wrapper"></div>
+    </div>
 
     <div id="winner-container" class="hidden">
       <div id="winner-wrapper">

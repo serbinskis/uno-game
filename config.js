@@ -1,17 +1,35 @@
 module.exports = {
     PORT: 80, //Port
-    MAX_PLAYERS: 10, //Maximum amount of players
-    MAX_CARDS: 100, //Max cards, so it would not crash game
-    START_CARDS: 8, //Amount of cards every player will get
+    DIRECTION_FORWARD: 1, //Normal direction, dont change this
+    DIRECTION_REVERSE: -1, //Reverse direction, dont change this
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts (seconds)
     TURN_DELAY: Math.round(1.5*1000), //Delay between turns (ms)
-
     UNO_CARD_AMOUNT: 2, //Amount of cards to take when someone presses uno
+
+    //Maximum amount of players,
+    MAX_PLAYERS: {
+        default: 4,
+        minimum: 2,
+        maximum: 100,
+    },
+
+    //Maximum amount of cards which can hold player
+    MAX_CARDS: {
+        default: 100,
+        minimum: 2,
+        maximum: 999,
+    },
+
+    //Amount of cards every player will get
+    START_CARDS: {
+        default: 8,
+        minimum: 1,
+        maximum: 100,
+    },
+
     DRAW_TO_MATCH: true, //Draw cards until get playable one
     CAN_STACK_CARDS: true, //Can put same cards at one turn
-    CAN_JUMP_IN: true, //Can jump in when cards ar same - Currently useless
-    DIRECTION_FORWARD: 1, //Normal direction
-    DIRECTION_REVERSE: -1, //Reverse direction
+    CAN_JUMP_IN: true, //Can jump in when cards ar same
 
     error_codes: {
         '200': 'OK',
@@ -24,6 +42,8 @@ module.exports = {
         '1003': 'Max players!',
         '1004': 'Invalid username!',
         '1005': 'Invalid invite!',
+
+        '2001': 'You have been kicked from this room!',
     },
 
     colors: ["BLUE", "GREEN", "RED", "YELLOW"],

@@ -4,6 +4,7 @@ var socket = io.connect();
 
 //Constants
 const MAX_AVATAR_SIZE = 950*1024;
+const DEFAULT_SAVE_TIME = 30*24*60*60*1000;
 const DELAY = 100;
 
 
@@ -34,6 +35,14 @@ function fileExists(url) {
         return false;
     }
 }
+
+
+//Check number between
+function Between(num, a, b) {
+    var min = Math.min.apply(Math, [a, b]), max = Math.max.apply(Math, [a, b]);
+    return (num != null) && (num >= min && num <= max);
+};
+
 
 
  //Set cookie

@@ -35,6 +35,7 @@ app.get("/", function(req, res) {
 io.sockets.on("connection", socket => {
     //Generate uid for socket
     socket.uid = uuidv4().replace(/-/g, "");
+    socket.emit("settings", {max_players: config.MAX_PLAYERS, max_cards: config.MAX_CARDS, start_cards: config.START_CARDS});
 
 
     //Save and send avatar url
@@ -72,7 +73,7 @@ io.sockets.on("connection", socket => {
 
         //Create room if doesnt exist
         if (!room) {
-            var room = CreateRoom(socket.uid);
+            var room = CreateRoom(socket.uid, data.start_cards, data.max_players, data.max_cards, data.draw_to_match, data.can_stack_cards, data.can_jump_in);
             rooms[data.invite] = room;
         }
 
@@ -89,7 +90,7 @@ io.sockets.on("connection", socket => {
         }
 
         //Log who joined
-        console.log(`${data.username}(${socket.uid}) joined room: ${data.invite}`);
+        console.log(`${data.username}(${socket.uid}) joined room: ${data.invite}\n`);
 
         //Check if avatar exists
         if (!data.avatar || !fs.existsSync(`./website/avatars/${data.avatar}.png`)) {
@@ -104,6 +105,7 @@ io.sockets.on("connection", socket => {
 
         //Add variables to player socket
         socket.room = data.invite;
+        socket.username = data.username;
 
         //Send new player info to already conected players
         io.to(data.invite).emit("new_player", player);
@@ -122,9 +124,10 @@ io.sockets.on("connection", socket => {
         if (socket.room && socket.uid) {
             //Clear room from socket, so it can join another room
             var socket_room = socket.room;
-            var room = rooms[socket_room];
             delete socket.room;
 
+            //Check if room exists
+            var room = rooms[socket_room];
             if (!room) { return; }
 
             //Get players list
@@ -139,14 +142,34 @@ io.sockets.on("connection", socket => {
 
             //Set new playing if current left, and clear stack
             if ((players.length-1 != 0) && socket.uid == room.current_move) {
-                room.stack = 0;
-                room.current_move = NextPlayer(room, socket.uid, 1);
-                info.current_move = room.current_move;
+                //If player who left was choosing color, select random color
+                if (room.choose_color && !room.winner) {
+                    var color = config.colors[RandomRange(0, config.colors.length-1)]; //Select random color
+                    room.current_card = {color: color, type: room.current_card.type} //Update card
+                    io.sockets.to(socket_room).emit("change_color", {type: room.current_card.type, color: color});
+
+                    delete room.choose_color; //Delete variable from room, so it doesnt affect "place_card" if we are stacking
+                    if (room.can_jump_in) { whoCanJumpIn(room, socket_room); } //Send info who can jump in 
+                    var next_player = NextPlayer(room, socket.uid, 1); //Set next player variable here, because player will be deleted later
+
+                    //Delay next move after selecting color
+                    room.turn_delay = timer.start(function() {
+                        room.current_move = next_player;
+                        delete room.turn_delay; //Delete delay variable
+                        delete room.uno; //Clear uno variable
+                        io.sockets.to(socket_room).emit("next_move", {next_move: room.current_move});
+                    }, config.TURN_DELAY);
+                } else {
+                    room.stack = 0;
+                    info.stack = 0;
+                    room.current_move = NextPlayer(room, socket.uid, 1);
+                    info.current_move = room.current_move;
+                }
             }
 
             //Remove player and log that player left
             delete room.players[socket.uid];
-            console.log(`\n${socket.uid} disconnect.`);
+            console.log(`${socket.username}(${socket.uid}) disconnect room: ${socket_room}\n`);
 
             //If last player left delete room
             if (players.length-1 != 0) {
@@ -208,7 +231,7 @@ io.sockets.on("connection", socket => {
 
         //Get current room
         var room = rooms[socket.room];
-        if (!room || !room.started || room.next_move || room.turn_delay || room.choose || room.current_move != socket.uid) { return; }
+        if (!room || !room.started || room.choose_color || room.turn_delay || room.choose || room.current_move != socket.uid) { return; }
 
         //Get player
         var player = room.players[socket.uid];
@@ -248,7 +271,7 @@ io.sockets.on("connection", socket => {
             room.current_move = NextPlayer(room, socket.uid, 1);
         } else {
             room.choose = can_play_card_after;  //If player got playable card, ask him to play or save
-            room.current_move = (can_play_card_after || config.DRAW_TO_MATCH) ? socket.uid : NextPlayer(room, socket.uid, 1); //Dont change current move if player is choosing
+            room.current_move = (can_play_card_after || room.draw_to_match) ? socket.uid : NextPlayer(room, socket.uid, 1); //Dont change current move if player is choosing
         }
 
         room.stack = 0;
@@ -264,7 +287,7 @@ io.sockets.on("connection", socket => {
 
         //Get current room
         var room = rooms[socket.room];
-        if (!room || !room.started || room.next_move || room.current_move != socket.uid) { return; }
+        if (!room || !room.started || room.choose_color) { return; }
 
         //Get current card
         var card = room.cards[socket.uid][data.id];
@@ -272,8 +295,11 @@ io.sockets.on("connection", socket => {
 
         //Check if player has time to stack card and if card is same color and type
         if (room.turn_delay) {
+            var jump_in = ((room.current_move != socket.uid) && room.can_jump_in); //Check if player can jump in
             var card_color = card.color != "ANY" ? card.color : room.current_card.color;
-            if (!room.can_stack_cards || (card_color != room.current_card.color) || (card.type != room.current_card.type)) { return; }
+            if (!(room.can_stack_cards || jump_in) || (card_color != room.current_card.color) || (card.type != room.current_card.type)) { return; }
+        } else {
+            if (room.current_move != socket.uid) { return; } //If its not delay then player cant jump in
         }
 
         //Store information here
@@ -281,10 +307,11 @@ io.sockets.on("connection", socket => {
         var pickcolor = false;
 
         //Check if card can be played
+        //Welp some of the checking could be skipped if player is stacking or jumping in, but WHO CARES
         switch (card.type) {
             case "REVERSE": //Can put on same color or same type, reverse direction, can be put after stack was taken
                 if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
-                room.direction *= -1;
+                room.direction *= config.DIRECTION_REVERSE;
                 break;
             case "BLOCK": //Can put on same color or same type, just skip by 1 more, can be put after stack was taken
                 if (room.stack > 0 || (card.color != room.current_card.color && card.type != room.current_card.type)) { return; }
@@ -312,10 +339,11 @@ io.sockets.on("connection", socket => {
         var player = room.players[socket.uid]; //Get player
         player.count -= 1; //Decrease players card count
 
-        if (pickcolor) {
-            room.next_move = NextPlayer(room, socket.uid, next_by);
-        } else {
-            var next_move = NextPlayer(room, socket.uid, next_by);
+        if (jump_in) {
+            io.sockets.to(socket.room).emit("next_move", {next_move: socket.uid, jumped_in: room.current_move}); //If someone jumped in then change move to them
+            room.current_move = socket.uid; //Change current move to new player
+            timer.stop(room.turn_delay); //Stop delay, and clear it
+            delete room.turn_delay; //New delay will be created bellow
         }
 
         var data = {
@@ -351,10 +379,17 @@ io.sockets.on("connection", socket => {
             data.blocked = NextPlayer(room, socket.uid, 1);
         }
 
+        if (pickcolor) {
+            room.choose_color = true; //Set player choosing color
+        } else {
+            if (room.can_jump_in) { whoCanJumpIn(room, socket.room, data.blocked); } //If player not selecting color, send info who can jump in 
+            var next_move = NextPlayer(room, socket.uid, next_by); //Set next player who will be selected after delay
+        }
+
         //Send data
         io.sockets.to(socket.room).emit("place_card", data);
 
-        //If selecting color dont delay next move (will be delayed in "change_color") and delete previous delay, because it may have been set in "change_color"
+        //If selecting color, clear delay
         if (pickcolor) {
             timer.stop(room.turn_delay);
             delete room.turn_delay;
@@ -374,6 +409,14 @@ io.sockets.on("connection", socket => {
 
         //Start timer between next player will get his turn
         room.turn_delay = timer.start(function() {
+            var player = room.players[next_move]; //Check if next player didnt leave
+            if (!player) next_move = NextPlayer(room, socket.uid, next_by);
+
+            //Remember socket.uid, can also became inaccessible, if current playing player leaves
+            //That means that game will be dead since NextPlayer() cannot find next player without previous
+            //So as for now, one of solutions would be select new random player, or rework all game and dont delete players at all somehow
+            //Just mark them left or something like it
+
             room.current_move = next_move; //Set next move
             delete room.turn_delay; //Delete delay variable
             delete room.uno; //Clear uno variable
@@ -388,7 +431,7 @@ io.sockets.on("connection", socket => {
 
         //Get current room
         var room = rooms[socket.room];
-        if (!room || !room.started || !room.next_move || room.turn_delay || room.current_move != socket.uid) { return; }
+        if (!room || !room.started || !room.choose_color || room.turn_delay || room.current_move != socket.uid) { return; }
 
         //Check if current card is PLUS_FOUR or COLOR_CHANGE
         if (room.current_card.type != "PLUS_FOUR" && room.current_card.type != "COLOR_CHANGE") {
@@ -403,15 +446,15 @@ io.sockets.on("connection", socket => {
         room.current_card = {color: data.color, type: room.current_card.type} //Update card
         io.sockets.to(socket.room).emit("change_color", {type: room.current_card.type, color: data.color});
 
-        var next_move = room.next_move; //Create temporary variable
-        delete room.next_move; //Delete variable from room, so it doesnt affect "place_card" if we are stacking
+        delete room.choose_color; //Delete variable from room, so it doesnt affect "place_card" if we are stacking
+        if (room.can_jump_in) { whoCanJumpIn(room, socket.room); } //Send info who can jump in 
 
         //Delay next move after selecting color
         room.turn_delay = timer.start(function() {
-            room.current_move = next_move; //Set next move
+            room.current_move = NextPlayer(room, socket.uid, 1); //Set next move
             delete room.turn_delay; //Delete delay variable
             delete room.uno; //Clear uno variable
-            io.sockets.to(socket.room).emit("next_move", {next_move: next_move});
+            io.sockets.to(socket.room).emit("next_move", {next_move: room.current_move});
         }, config.TURN_DELAY);
     });
 
@@ -481,6 +524,27 @@ io.sockets.on("connection", socket => {
         io.sockets.to(socket.room).emit("uno_press", {id: room_uno, count: player.count});
         if (room.turn_delay) { timer.finish(room.turn_delay); }
     });
+
+    //Kick player
+    socket.on("kick", data => {
+        if (!socket.room || !socket.uid) { return; }
+
+        //Get current room
+        var room = rooms[socket.room];
+        if (!room || room.owner != socket.uid || room.owner == data.id) { return; }
+
+        //Check if player exists
+        var player = room.players[data.id];
+        if (!player) { return; }
+
+        //Get socket
+        var clientSocket = GetPlayerSocket(socket.room, data.id);
+        if (!clientSocket) { return; }
+
+        //Kick player
+        clientSocket.emit("kick", {message: config.error_codes[2001]});
+        clientSocket.disconnect();
+    });
 });
 
 
@@ -526,10 +590,10 @@ timer = {
         clearTimeout(timer.timers[id][0]);
         delete timer.timers[id];
     },
-    change: function(id, newgap) {
+    change: function(id, gap) {
         if(!timer.timers[id]) { return; };
         clearTimeout(timer.timers[id][0]);
-        timer.start(timer.timers[id][1], newgap, id);
+        timer.start(timer.timers[id][1], gap, id);
     }
 };
 
@@ -551,18 +615,18 @@ function GetPlayerSocket(room, uid) {
 
 //Reset room
 async function ResetRoom(room_id) {
-    await Wait(config.NEXT_GAME_TIMEOUT*1000 + 1500); //This amount before winner screen appears (500) + wait little more (500)
+    await Wait(config.NEXT_GAME_TIMEOUT*1000 + 1500); //This amount before winner screen appears (500) + wait little more (1000)
 
     //Get room
     var room = rooms[room_id];
-    if (!room) { return; }
+    if (!room || !room.winner) { return; }
 
     //Get players
     var players = Object.keys(room.players);
     if (players.length == 0) { return; } //Not quite needed since if last player leaves room is deleted, but I still added it here
 
     //Recreate room
-    var new_room = CreateRoom(room.owner);
+    var new_room = CreateRoom(room.owner, room.start_cards, room.max_players, room.max_cards, room.draw_to_match, room.can_stack_cards, room.can_jump_in);
     new_room.players = room.players;
     new_room.started = true;
     new_room.current_move = players[RandomRange(0, players.length-1)]; //Select random player
@@ -615,20 +679,22 @@ async function CreateAvatar(buffer, uid) {
 
 
 //Create room for player (later, maybe include settings - maxplayers, maxcards, startcrads, timer, canstack, canjumpin)
-function CreateRoom(owner) {
+function CreateRoom(owner, start_cards, max_players, max_cards, draw_to_match, can_stack_cards, can_jump_in) {
     return {
         owner: owner,
-        can_stack_cards: config.CAN_STACK_CARDS,
-        direction: config.DIRECTION_FORWARD,
-        start_cards: config.START_CARDS,
-        max_players: config.MAX_PLAYERS,
-        max_cards: config.MAX_CARDS,
         stack: 0,
         current_move: "",
         current_card: {},
         started: false,
         players: {},
         cards: {},
+        direction: config.DIRECTION_FORWARD,
+        start_cards: Between(start_cards, config.START_CARDS.minimum, config.START_CARDS.maximum) ? start_cards : config.START_CARDS.default,
+        max_players: Between(max_players, config.MAX_PLAYERS.minimum, config.MAX_PLAYERS.maximum) ? max_players : config.MAX_PLAYERS.default,
+        max_cards: Between(max_players, config.MAX_CARDS.minimum, config.MAX_CARDS.maximum) ? max_cards : config.MAX_CARDS.default,
+        draw_to_match: (draw_to_match != null) ? (draw_to_match == "ON") : config.DRAW_TO_MATCH,
+        can_stack_cards: (can_stack_cards != null) ? (can_stack_cards == "ON") : config.CAN_STACK_CARDS,
+        can_jump_in: (can_jump_in != null) ? (can_jump_in == "ON") : config.CAN_JUMP_IN,
     }
 }
 
@@ -652,6 +718,22 @@ function NextPlayer(room, uid, by) {
     }
 
     return keys[index];
+}
+
+
+//Send what players can jump in
+function whoCanJumpIn(room, room_id, blocked_id) {
+    for (const [player_id, value] of Object.entries(room.players)) {
+        if ((player_id != room.current_move) && (player_id != blocked_id)) { //Yes, I know, blocked_id may be undefinied, and, WHO CARES
+            for (const [card_id, value] of Object.entries(room.cards[player_id])) {
+                var card_color = value.color != "ANY" ? value.color : room.current_card.color;
+                if (card_color == room.current_card.color && value.type == room.current_card.type) {
+                    var clientSocket = GetPlayerSocket(room_id, player_id);
+                    if (clientSocket) { clientSocket.emit("can_jump_in"); }
+                }
+            }
+        }
+    }
 }
 
 
@@ -705,6 +787,13 @@ function IPV4Address() {
 
     return address;
 }
+
+
+//Check number between
+function Between(num, a, b) {
+    var min = Math.min.apply(Math, [a, b]), max = Math.max.apply(Math, [a, b]);
+    return (num != null) && (num >= min && num <= max);
+};
 
 
 //Start server

@@ -176,6 +176,15 @@
     z-index: -1;
 }
 
+#settings {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    left: 50%;
+    top: 15px;
+    transform: translate(-50%, 0);
+}
+
 #carddeck {
     position: fixed;
     top: 20px;
@@ -312,7 +321,7 @@
     width: 64px;
     height: 64px;
     margin-top: 7px;
-    margin-right: 47px;
+    margin-right: 57px;
     pointer-events: none;
     clear: both;
 }
@@ -346,8 +355,8 @@
     text-align: center;
     width: 37px;
     line-height: 60px;
-    padding-top: 5px;
-    padding-right: 10px;
+    margin-top: 5px;
+    margin-right: 10px;
     cursor: url(../resources/arrow.png), auto;
 }
 
@@ -369,6 +378,7 @@
     position: absolute;
     vertical-align: middle;
     right: 47px;
+    margin-right: 10px;
     margin-bottom: 10px;
 }
 
@@ -504,6 +514,8 @@
     font-size: 3vw;
     -webkit-text-stroke-width: 0.2vw;
     -webkit-text-stroke-color: var(--black);
+
+    transition: box-shadow 0.3s, filter 0.3s;
 }
 
 #winner-return:hover {
@@ -586,6 +598,8 @@
     font-size: 40px;
     -webkit-text-stroke-width: 2.5px;
     -webkit-text-stroke-color: var(--black);
+
+    transition: box-shadow 0.3s, filter 0.3s;
 }
 
 .choose-button:hover {
@@ -660,3 +674,32 @@
 }
 
 /* [UNO end] */
+
+/* [Settings part start] */
+
+#settings-container .setting-player {
+    height: 60px;
+}
+
+#settings-container .setting-avatar {
+    width: 48px;
+    height: 48px;
+}
+
+#settings-container .setting-username {
+    display: flex;
+    width: 400px;
+    margin: 0 auto -2px 15px;
+    overflow: hidden;
+}
+
+#settings-container .kick {
+    transform: scale(0.6);
+    transition: box-shadow 0.3s, filter 0.3s;
+}
+
+#settings-container .kick:hover {
+    box-shadow: 0px 0px 10px 5px var(--white);
+}
+
+/* [Settings part end] */
