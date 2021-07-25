@@ -68,13 +68,12 @@ io.sockets.on("connection", socket => {
             return;
         }
 
-        //Get room
-        var room = rooms[data.invite];
-
         //Create room if doesnt exist
-        if (!room) {
-            var room = CreateRoom(socket.uid, data.start_cards, data.max_players, data.max_cards, data.draw_to_match, data.can_stack_cards, data.can_jump_in);
-            rooms[data.invite] = room;
+        if (!rooms[data.invite]) {
+            rooms[data.invite] = CreateRoom(socket.uid, data.start_cards, data.max_players, data.max_cards, data.draw_to_match, data.can_stack_cards, data.can_jump_in);
+            var room = rooms[data.invite]; //Get room
+        } else {
+            var room = rooms[data.invite]; //Get room
         }
 
         //Check if game started
@@ -84,7 +83,7 @@ io.sockets.on("connection", socket => {
         }
 
         //Check if max players
-        if (Object.keys(room.players).length >= room.max_players) {
+        if (GetOnline(room) >= room.max_players) {
             socket.emit("join", {code: 1003, message: config.error_codes[1003]});
             return;
         }
@@ -99,9 +98,14 @@ io.sockets.on("connection", socket => {
             data.avatar = `avatars/${data.avatar}.png`;
         }
 
+        //Remove player if he was in list (he can still be in list, but marked as left)
+        if (room.players[socket.uid]) {
+            delete room.players[socket.uid];
+        }
+
         //Create player and fake id, just to use it in html
         var player = {username: data.username, avatar: data.avatar, id: socket.uid, count: 0};
-        rooms[data.invite].players[socket.uid] = player;
+        room.players[socket.uid] = player;
 
         //Add variables to player socket
         socket.room = data.invite;
@@ -114,7 +118,7 @@ io.sockets.on("connection", socket => {
         socket.join(data.invite);
 
         //Send info of room to new player
-        socket.emit("join", {code: 200, players: rooms[data.invite].players, owner: room.owner, my_id: socket.uid});
+        socket.emit("join", {code: 200, players: room.players, owner: room.owner, my_id: socket.uid});
     });
 
 
@@ -130,18 +134,31 @@ io.sockets.on("connection", socket => {
             var room = rooms[socket_room];
             if (!room) { return; }
 
-            //Get players list
-            var players = Object.keys(room.players);
-            var info = {id: socket.uid}
+            //Set player left and log that player left
+            if (!room.started) {
+                delete room.players[socket.uid]; //Delete player if game not started
+            } else {
+                room.players[socket.uid].left = true; //Store player, but mark as left if game is started
+            }
+            
+            console.log(`${socket.username}(${socket.uid}) disconnect room: ${socket_room}\n`);
+
+            var info = {id: socket.uid} //Store info here
+            var players_online = GetOnline(room); //Count online players in room
 
             //If left player is not last and he was owner then select new owner
-            if ((players.length-1 != 0) && room.owner == socket.uid) {
-                room.owner = players[1]; //Change owner
-                info.new_owner = players[1];
+            if ((players_online != 0) && room.owner == socket.uid) {
+                for (const [id, value] of Object.entries(room.players)) {
+                    if (!value.left) {
+                        room.owner = id;
+                        info.new_owner = id;
+                        break;
+                    }
+                }
             }
 
             //Set new playing if current left, and clear stack
-            if ((players.length-1 != 0) && socket.uid == room.current_move) {
+            if ((players_online != 0) && socket.uid == room.current_move) {
                 //If player who left was choosing color, select random color
                 if (room.choose_color && !room.winner) {
                     var color = config.colors[RandomRange(0, config.colors.length-1)]; //Select random color
@@ -149,12 +166,11 @@ io.sockets.on("connection", socket => {
                     io.sockets.to(socket_room).emit("change_color", {type: room.current_card.type, color: color});
 
                     delete room.choose_color; //Delete variable from room, so it doesnt affect "place_card" if we are stacking
-                    if (room.can_jump_in) { whoCanJumpIn(room, socket_room); } //Send info who can jump in 
-                    var next_player = NextPlayer(room, socket.uid, 1); //Set next player variable here, because player will be deleted later
+                    if (room.can_jump_in) { whoCanJumpIn(room, socket_room); } //Send info who can jump in
 
                     //Delay next move after selecting color
                     room.turn_delay = timer.start(function() {
-                        room.current_move = next_player;
+                        room.current_move = NextPlayer(room, socket.uid, 1);
                         delete room.turn_delay; //Delete delay variable
                         delete room.uno; //Clear uno variable
                         io.sockets.to(socket_room).emit("next_move", {next_move: room.current_move});
@@ -167,12 +183,8 @@ io.sockets.on("connection", socket => {
                 }
             }
 
-            //Remove player and log that player left
-            delete room.players[socket.uid];
-            console.log(`${socket.username}(${socket.uid}) disconnect room: ${socket_room}\n`);
-
             //If last player left delete room
-            if (players.length-1 != 0) {
+            if (players_online != 0) {
                 if (!room.winner) { io.to(socket_room).emit("left", info); }
             } else {
                 delete rooms[socket_room];
@@ -190,12 +202,15 @@ io.sockets.on("connection", socket => {
         //Get room
         var room = rooms[socket.room];
 
-        if (!room || room.started || room.owner != socket.uid || (Object.keys(room.players).length == 0)) {
+        if (!room || room.started || room.owner != socket.uid || (GetOnline(room) == 0)) {
             return;
         }
 
-        //Get list of players uid
-        var players = Object.keys(room.players);
+        //Get list of players uid to select random for first move
+        var players = [];
+        for (const [id, value] of Object.entries(room.players)) {
+            if (!value.left) { players.push(id); }
+        }
 
         //Start game and set random player as first
         room.started = true;
@@ -383,7 +398,6 @@ io.sockets.on("connection", socket => {
             room.choose_color = true; //Set player choosing color
         } else {
             if (room.can_jump_in) { whoCanJumpIn(room, socket.room, data.blocked); } //If player not selecting color, send info who can jump in 
-            var next_move = NextPlayer(room, socket.uid, next_by); //Set next player who will be selected after delay
         }
 
         //Send data
@@ -396,28 +410,15 @@ io.sockets.on("connection", socket => {
             return;
         }
 
-        //Will be a thing only in room with 2 players, after putting a block card
-        if (room.current_move == next_move) {
-            return;
-        }
-
         //Reset timer every time player stack their card
         if (room.turn_delay) {
             timer.change(room.turn_delay, config.TURN_DELAY);
             return;
-        } 
+        }
 
         //Start timer between next player will get his turn
         room.turn_delay = timer.start(function() {
-            var player = room.players[next_move]; //Check if next player didnt leave
-            if (!player) next_move = NextPlayer(room, socket.uid, next_by);
-
-            //Remember socket.uid, can also became inaccessible, if current playing player leaves
-            //That means that game will be dead since NextPlayer() cannot find next player without previous
-            //So as for now, one of solutions would be select new random player, or rework all game and dont delete players at all somehow
-            //Just mark them left or something like it
-
-            room.current_move = next_move; //Set next move
+            room.current_move = NextPlayer(room, socket.uid, next_by); //Set next move
             delete room.turn_delay; //Delete delay variable
             delete room.uno; //Clear uno variable
             io.sockets.to(socket.room).emit("next_move", {next_move: room.current_move});
@@ -478,6 +479,7 @@ io.sockets.on("connection", socket => {
         io.sockets.to(socket.room).emit("next_move", {next_move: room.current_move});
     });
 
+
     //When changing color
     socket.on("uno_press", function() {
         if (!socket.room || !socket.uid) { return; }
@@ -524,6 +526,7 @@ io.sockets.on("connection", socket => {
         io.sockets.to(socket.room).emit("uno_press", {id: room_uno, count: player.count});
         if (room.turn_delay) { timer.finish(room.turn_delay); }
     });
+
 
     //Kick player
     socket.on("kick", data => {
@@ -621,10 +624,6 @@ async function ResetRoom(room_id) {
     var room = rooms[room_id];
     if (!room || !room.winner) { return; }
 
-    //Get players
-    var players = Object.keys(room.players);
-    if (players.length == 0) { return; } //Not quite needed since if last player leaves room is deleted, but I still added it here
-
     //Recreate room
     var new_room = CreateRoom(room.owner, room.start_cards, room.max_players, room.max_cards, room.draw_to_match, room.can_stack_cards, room.can_jump_in);
     new_room.players = room.players;
@@ -706,8 +705,7 @@ function NextPlayer(room, uid, by) {
     var index = keys.indexOf(uid);
     if (index == -1) { return null; } // -1, not found
 
-    by = by * room.direction;
-    index += by;
+    index += room.direction;
 
     while (index > keys.length-1) {
         index = index - keys.length;
@@ -717,14 +715,30 @@ function NextPlayer(room, uid, by) {
         index = keys.length + index;
     }
 
-    return keys[index];
+    var player_uid = keys[index]
+    var player = room.players[player_uid];
+
+    //Return only if last by and player has not left
+    return ((by <= 1) && !player.left) ? player_uid : NextPlayer(room, player_uid, (player.left ? by : by-1));
+}
+
+
+//Get online players in room
+function GetOnline(room) {
+    var players_online = 0;
+
+    for (const [id, value] of Object.entries(room.players)) {
+        if (!value.left) { players_online += 1; }
+    }
+
+    return players_online;
 }
 
 
 //Send what players can jump in
 function whoCanJumpIn(room, room_id, blocked_id) {
     for (const [player_id, value] of Object.entries(room.players)) {
-        if ((player_id != room.current_move) && (player_id != blocked_id)) { //Yes, I know, blocked_id may be undefinied, and, WHO CARES
+        if (!value.left && (player_id != room.current_move) && (player_id != blocked_id)) { //Yes, I know, blocked_id may be undefinied, and, WHO CARES
             for (const [card_id, value] of Object.entries(room.cards[player_id])) {
                 var card_color = value.color != "ANY" ? value.color : room.current_card.color;
                 if (card_color == room.current_card.color && value.type == room.current_card.type) {

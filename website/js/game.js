@@ -102,7 +102,9 @@ socket.on("join", function(data) {
     $("#game-container").removeClass("hidden");
 
     for (const [key, value] of Object.entries(data.players)) {
-        CreatePlayer(value.username, value.id, value.avatar, value.count);
+        if (!value.left) {
+            CreatePlayer(value.username, value.id, value.avatar, value.count);
+        }
     }
 
     $(`#username_${data.owner}`).addClass("crown");
