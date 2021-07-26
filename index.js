@@ -624,6 +624,12 @@ async function ResetRoom(room_id) {
     var room = rooms[room_id];
     if (!room || !room.winner) { return; }
 
+    //Get list of players uid to select random for first move
+    var players = [];
+    for (const [id, value] of Object.entries(room.players)) {
+        if (!value.left) { players.push(id); }
+    }
+
     //Recreate room
     var new_room = CreateRoom(room.owner, room.start_cards, room.max_players, room.max_cards, room.draw_to_match, room.can_stack_cards, room.can_jump_in);
     new_room.players = room.players;
