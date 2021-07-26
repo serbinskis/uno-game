@@ -5,7 +5,6 @@ const socketio = require("socket.io");
 const Canvas = require("canvas")
 const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
-const { Console } = require("console");
 
 //Variable to store all rooms
 var rooms = {};
