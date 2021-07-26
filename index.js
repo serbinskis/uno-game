@@ -185,7 +185,7 @@ io.sockets.on("connection", socket => {
 
             //If last player left delete room
             if (players_online > 0) {
-                if (!room.winner) { io.to(socket_room).emit("left", info); }
+                if (!room.winner) { io.sockets.to(socket_room).emit("left", info); }
             } else {
                 delete rooms[socket_room];
             }
