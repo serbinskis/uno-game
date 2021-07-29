@@ -1,5 +1,5 @@
 module.exports = {
-    PORT: 80, //Port
+    PORT: 3000, //Port
     DIRECTION_FORWARD: 1, //Normal direction, dont change this
     DIRECTION_REVERSE: -1, //Reverse direction, dont change this
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts (seconds)
