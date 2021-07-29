@@ -797,17 +797,6 @@ function GenerateCard(includeSpecial) {
 }
 
 
-//Get IPV4 Address
-function IPV4Address() {
-    var address, ifaces = require("os").networkInterfaces();
-    for (var dev in ifaces) {
-        ifaces[dev].filter((details) => details.family === "IPv4" && details.internal === false ? address = details.address: undefined);
-    }
-
-    return address;
-}
-
-
 //Check number between
 function Between(num, a, b) {
     var min = Math.min.apply(Math, [a, b]), max = Math.max.apply(Math, [a, b]);
@@ -816,6 +805,6 @@ function Between(num, a, b) {
 
 
 //Start server
-server.listen(config.PORT, IPV4Address(), function() {
-    console.log(`Listening on ${IPV4Address()}:${config.PORT}`);
+server.listen(config.PORT, function() {
+    console.log(`Listening on port: ${config.PORT}`);
 });
