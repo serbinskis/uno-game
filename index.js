@@ -19,13 +19,6 @@ const io = socketio(server);
 
 //When someone visit webpage
 app.get("/", function(req, res) {
-    //Log some data
-    var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-    var Cookie = req.headers.cookie || "";
-    console.log(`\nNew connection from ${ip}`);
-    console.log(`Cookie: ${Cookie}`);
-    
-    //Send website page
     res.sendFile(__dirname + "/website/index.html");
 });
 
@@ -88,7 +81,7 @@ io.sockets.on("connection", socket => {
         }
 
         //Log who joined
-        console.log(`${data.username}(${socket.uid}) joined room: ${data.invite}\n`);
+        console.log(`[${socket.handshake.address.split(":").pop()}] ${data.username}(${socket.uid}) joined room: ${data.invite}\n`);
 
         //Check if avatar exists
         if (!data.avatar || !fs.existsSync(`./website/avatars/${data.avatar}.png`)) {
@@ -140,7 +133,7 @@ io.sockets.on("connection", socket => {
                 room.players[socket.uid].left = true; //Store player, but mark as left if game is started
             }
             
-            console.log(`${socket.username}(${socket.uid}) disconnect room: ${socket_room}\n`);
+            console.log(`[${socket.handshake.address.split(":").pop()}] ${socket.username}(${socket.uid}) disconnect room: ${socket_room}\n`);
 
             var info = {id: socket.uid} //Store info here
             var players_online = GetOnline(room); //Count online players in room
