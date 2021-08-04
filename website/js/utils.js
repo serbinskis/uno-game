@@ -1,11 +1,9 @@
 //Connect to socket
 var socket = io.connect();
 
-
 //Constants
 const MAX_AVATAR_SIZE = 950*1024;
 const DEFAULT_SAVE_TIME = 30*24*60*60*1000;
-const DELAY = 100;
 
 
 //Alert command

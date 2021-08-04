@@ -179,6 +179,7 @@ io.sockets.on("connection", socket => {
             if (players_online > 0) {
                 if (!room.winner) { io.sockets.to(socket_room).emit("left", info); }
             } else {
+                if (room.turn_delay) { timer.stop(room.turn_delay); }
                 delete rooms[socket_room];
             }
         }
