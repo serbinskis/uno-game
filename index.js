@@ -668,6 +668,7 @@ async function CreateAvatar(buffer, uid) {
         ctx.drawImage(avatarImage, 13, 13, 104, 104);
         ctx.drawImage(frameImage, 0, 0);
 
+        if (!fs.existsSync("./website/avatars")) { fs.mkdirSync("./website/avatars"); }
         fs.writeFileSync(`./website/avatars/${uid}.png`, canvas.toBuffer())
         return uid;
     } catch(e) {
