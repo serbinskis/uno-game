@@ -800,6 +800,6 @@ function Between(num, a, b) {
 
 
 //Start server
-server.listen(config.PORT, function() {
-    console.log(`Listening on port: ${config.PORT}`);
+server.listen(process.env.PORT || config.PORT, function() {
+    console.log(`Listening on port: ${process.env.PORT || config.PORT}`);
 });
