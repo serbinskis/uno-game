@@ -1,5 +1,6 @@
-//Variable to store settings 
+//Variable to store data 
 var settings;
+var avatar;
 
 //Load username and avatar from cookies
 $("#username")[0].value = GetCookie("username");
@@ -20,17 +21,12 @@ $("#avatar").click(function(e) {
     input.setAttribute("accept", ".png,.jpg,.jpeg,.bmp,.gif");
 
     input.onchange = function(event) {
-        if (event.target.files[0].size > MAX_AVATAR_SIZE) {
-            input.remove();
-            alert("File is too big!");
-            return;
-        }
-
         reader.readAsArrayBuffer(event.target.files[0]);
     }
 
     reader.onload = function(event) {
-        socket.emit("avatar", event.target.result);
+        avatar = event.target.result;
+        socket.emit("avatar", {size: avatar.byteLength});
         input.remove();
     }
 
@@ -159,6 +155,11 @@ $(".arrow-right").click(function(e) {
 socket.on("avatar", function(data) {
     if (data.code != 200) {
         alert(data.message);
+        return;
+    }
+
+    if (data.accepted) {
+        socket.emit("avatar", avatar);
         return;
     }
 

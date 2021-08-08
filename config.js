@@ -32,18 +32,19 @@ module.exports = {
     CAN_JUMP_IN: true, //Can jump in when cards ar same
 
     error_codes: {
-        '200': 'OK',
-        '400': 'Bad request',
-        '404': 'Not Found',
-        '500': 'Internal Server Error',
+        "200": "OK",
+        "400": "Bad request",
+        "404": "Not Found",
+        "500": "Internal Server Error",
 
-        '1001': 'There was an error uploading avatar!',
-        '1002': 'Game already started!',
-        '1003': 'Max players!',
-        '1004': 'Invalid username!',
-        '1005': 'Invalid invite!',
+        "1001": "There was an error uploading avatar!",
+        "1002": "Game already started!",
+        "1003": "Max players!",
+        "1004": "Invalid username!",
+        "1005": "Invalid invite!",
+        "1006": "File is too big!",
 
-        '2001': 'You have been kicked from this room!',
+        "2001": "You have been kicked from this room!",
     },
 
     colors: ["BLUE", "GREEN", "RED", "YELLOW"],

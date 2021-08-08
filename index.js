@@ -4,7 +4,8 @@ const express = require("express");
 const socketio = require("socket.io");
 const Canvas = require("canvas")
 const fs = require("fs");
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
+const crypto = require("crypto");
 
 //Variable to store all rooms
 var rooms = {};
@@ -32,8 +33,20 @@ io.sockets.on("connection", socket => {
 
     //Save and send avatar url
     socket.on("avatar", async data => {
-        var uid = uuidv4().replace(/-/g, "");
-        var avatarCode = await CreateAvatar(data, uid);
+        //Check if size was sent, if size is number and if it is smaller than allowed
+        if (data && !isNaN(data.size) && (data.size <= io.eio.opts.maxHttpBufferSize)) {
+            socket.emit("avatar", {code: 200, accepted: true});
+            return;
+        }
+
+        //Check if we are reciving image buffer
+        if (!data || !Buffer.isBuffer(data)) {
+            socket.emit("avatar", {code: 1006, message: config.error_codes[1006]});
+            return;
+        }
+
+        //Create avatar and send back code
+        var avatarCode = await CreateAvatar(data);
 
         if (avatarCode != null) {
             socket.emit("avatar", {code: 200, avatarCode: avatarCode});
@@ -85,7 +98,7 @@ io.sockets.on("connection", socket => {
 
         //Check if avatar exists
         if (!data.avatar || !fs.existsSync(`./website/avatars/${data.avatar}.png`)) {
-            data.avatar = 'resources/defaultAvatar.png';
+            data.avatar = "resources/defaultAvatar.png";
         } else {
             data.avatar = `avatars/${data.avatar}.png`;
         }
@@ -224,7 +237,7 @@ io.sockets.on("connection", socket => {
 
             //Generate cards
             for (var i = 0; i < room.start_cards; i++) {
-                cards[uuidv4().replace(/-/g, '')] = GenerateCard(true);
+                cards[uuidv4().replace(/-/g, "")] = GenerateCard(true);
             }
 
             //Send info
@@ -263,7 +276,7 @@ io.sockets.on("connection", socket => {
         var cards = {}
 
         while (take_count != 0 && player.count < room.max_cards) {
-            var uid = uuidv4().replace(/-/g, ''); //Generate uid
+            var uid = uuidv4().replace(/-/g, ""); //Generate uid
             var card = GenerateCard(true) //Generate card
             if (!can_play_card_after) { can_play_card_after = canPlayCard(room, card); }
 
@@ -360,7 +373,7 @@ io.sockets.on("connection", socket => {
             remove_card_id: data.id, //used to remove card from player
             direction: room.direction, //What, direction normal or reverse
             pickcolor: pickcolor, //Should player pick color
-            player_id: socket.uid, //Who's playing
+            player_id: socket.uid, //Whos playing
             count: player.count, //What is new count
         }
 
@@ -503,7 +516,7 @@ io.sockets.on("connection", socket => {
 
         for (var i = 0; i < config.UNO_CARD_AMOUNT; i++) {
             if (player.count >= room.max_cards) { break; }
-            var uid = uuidv4().replace(/-/g, ''); //Generate uid
+            var uid = uuidv4().replace(/-/g, ""); //Generate uid
             var card = GenerateCard(true) //Generate card
 
             cards[uid] = card; //This will be sent to player
@@ -554,7 +567,7 @@ process.title = "UNO Game";
 
 
 //On exit close website
-process.on('SIGINT', function() {
+process.on("SIGINT", function() {
     console.log("Exit");
     io.sockets.emit("closed", "Server has been closed.");
     process.exit();
@@ -571,7 +584,7 @@ async function Wait(milleseconds) {
 timer = {
     timers: {},
     start: function(cb, gap, id) {
-        var key = id ? id : uuidv4().replace(/-/g, '');
+        var key = id ? id : uuidv4().replace(/-/g, "");
         timer.timers[key] = [setTimeout(function() {timer.finish(key)}, gap), cb];
         return key;
     },
@@ -642,7 +655,7 @@ async function ResetRoom(room_id) {
 
         //Generate cards
         for (var i = 0; i < new_room.start_cards; i++) {
-            cards[uuidv4().replace(/-/g, '')] = GenerateCard(true);
+            cards[uuidv4().replace(/-/g, "")] = GenerateCard(true);
         }
 
         //Send info
@@ -656,21 +669,24 @@ async function ResetRoom(room_id) {
 
 
 //Create avatar
-async function CreateAvatar(buffer, uid) {
+async function CreateAvatar(buffer) {
     try {
         const frameImage = await Canvas.loadImage("website/resources/frame.png");
         const avatarImage = await Canvas.loadImage(buffer);
         const canvas = Canvas.createCanvas(frameImage.width, frameImage.height);
-        const ctx = canvas.getContext("2d")
+        const ctx = canvas.getContext("2d");
 
         ctx.fillStyle = "black";
         ctx.fillRect(13, 13, 104, 104);
         ctx.drawImage(avatarImage, 13, 13, 104, 104);
         ctx.drawImage(frameImage, 0, 0);
 
+        var canvasBuffer = canvas.toBuffer();
+        var hex = crypto.createHash("sha256").update(buffer).digest("hex");
+
         if (!fs.existsSync("./website/avatars")) { fs.mkdirSync("./website/avatars"); }
-        fs.writeFileSync(`./website/avatars/${uid}.png`, canvas.toBuffer());
-        return uid;
+        if (!fs.existsSync(`./website/avatars/${hex}.png`)) { fs.writeFileSync(`./website/avatars/${hex}.png`, canvasBuffer); }
+        return hex;
     } catch(e) {
         return null;
     }
