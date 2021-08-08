@@ -671,6 +671,9 @@ async function ResetRoom(room_id) {
 //Create avatar
 async function CreateAvatar(buffer) {
     try {
+        const hex = crypto.createHash("sha1").update(buffer).digest("hex");
+        if (fs.existsSync(`./website/avatars/${hex}.png`)) { return hex; }
+
         const frameImage = await Canvas.loadImage("website/resources/frame.png");
         const avatarImage = await Canvas.loadImage(buffer);
         const canvas = Canvas.createCanvas(frameImage.width, frameImage.height);
@@ -681,11 +684,8 @@ async function CreateAvatar(buffer) {
         ctx.drawImage(avatarImage, 13, 13, 104, 104);
         ctx.drawImage(frameImage, 0, 0);
 
-        var canvasBuffer = canvas.toBuffer();
-        var hex = crypto.createHash("sha256").update(buffer).digest("hex");
-
         if (!fs.existsSync("./website/avatars")) { fs.mkdirSync("./website/avatars"); }
-        if (!fs.existsSync(`./website/avatars/${hex}.png`)) { fs.writeFileSync(`./website/avatars/${hex}.png`, canvasBuffer); }
+        fs.writeFileSync(`./website/avatars/${hex}.png`, canvas.toBuffer());
         return hex;
     } catch(e) {
         return null;
