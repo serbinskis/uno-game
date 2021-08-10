@@ -29,7 +29,7 @@ module.exports = {
 
     DRAW_TO_MATCH: true, //Draw cards until get playable one
     CAN_STACK_CARDS: true, //Can put same cards at one turn
-    CAN_JUMP_IN: true, //Can jump in when cards ar same
+    CAN_JUMP_IN: true, //Can jump in when cards are same
 
     error_codes: {
         "200": "OK",
