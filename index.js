@@ -15,7 +15,7 @@ var rooms = {};
 const app = express();
 app.use(express.static("website", {index: "index.html"}));
 const server = http.createServer(app);
-const io = socketio(server);
+const io = socketio(server, {maxHttpBufferSize: config.MAX_IMAGE_SIZE});
 
 
 //When someone visit webpage
@@ -697,7 +697,7 @@ async function CreateAvatar(buffer) {
 }
 
 
-//Create room for player (later, maybe include settings - maxplayers, maxcards, startcrads, timer, canstack, canjumpin)
+//Create room for player with settings
 function CreateRoom(owner, start_cards, max_players, max_cards, draw_to_match, can_stack_cards, can_jump_in) {
     return {
         owner: owner,
@@ -711,9 +711,9 @@ function CreateRoom(owner, start_cards, max_players, max_cards, draw_to_match, c
         start_cards: Between(start_cards, config.START_CARDS.minimum, config.START_CARDS.maximum) ? start_cards : config.START_CARDS.default,
         max_players: Between(max_players, config.MAX_PLAYERS.minimum, config.MAX_PLAYERS.maximum) ? max_players : config.MAX_PLAYERS.default,
         max_cards: Between(max_players, config.MAX_CARDS.minimum, config.MAX_CARDS.maximum) ? max_cards : config.MAX_CARDS.default,
-        draw_to_match: (draw_to_match != null) ? (draw_to_match == "ON") : config.DRAW_TO_MATCH,
-        can_stack_cards: (can_stack_cards != null) ? (can_stack_cards == "ON") : config.CAN_STACK_CARDS,
-        can_jump_in: (can_jump_in != null) ? (can_jump_in == "ON") : config.CAN_JUMP_IN,
+        draw_to_match: (draw_to_match != null) ? ((typeof draw_to_match === 'string') ? (draw_to_match == "ON") : draw_to_match) : config.DRAW_TO_MATCH,
+        can_stack_cards: (can_stack_cards != null) ? ((typeof can_stack_cards === 'string') ? (can_stack_cards == "ON") : can_stack_cards) : config.CAN_STACK_CARDS,
+        can_jump_in: (can_jump_in != null) ? ((typeof can_jump_in === 'string') ? (can_jump_in == "ON") : can_jump_in) : config.CAN_JUMP_IN,
     }
 }
 

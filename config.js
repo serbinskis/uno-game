@@ -5,6 +5,7 @@ module.exports = {
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts (seconds)
     TURN_DELAY: Math.round(1.5*1000), //Delay between turns (ms)
     UNO_CARD_AMOUNT: 2, //Amount of cards to take when someone presses uno
+    MAX_IMAGE_SIZE: 1024*1024*5, //Maximum size of image in bytes
 
     //Maximum amount of players,
     MAX_PLAYERS: {
