@@ -40,8 +40,8 @@ module.exports = {
         "1001": "There was an error uploading avatar!",
         "1002": "Game already started!",
         "1003": "Max players!",
-        "1004": "Invalid username!",
-        "1005": "Invalid invite!",
+        "1004": "Invalid username! Username is too short or too long!",
+        "1005": "Invalid invite! Must be 8 symbols a-z, 0-9.",
         "1006": "File is too big!",
 
         "2001": "You have been kicked from this room!",

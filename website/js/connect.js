@@ -39,16 +39,6 @@ $('#connect').click(function(e) {
     var username = $('#username')[0].value;
     var invite = $('#invite')[0].value;
 
-    if (!username || !username.match(/^.{2,24}$/)) {
-        alert("Username is too short or too long!");
-        return;
-    }
-
-    if (!invite || !invite.match(/^.[0-9a-z]{7,7}$/)) {
-        alert("Invalid invite!");
-        return;
-    }
-
     SetCookie("username", username, 30*24*60*60*1000);
     socket.emit("join", {invite: invite,
                          username: username,
