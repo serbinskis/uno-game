@@ -46,6 +46,10 @@ body {
     pointer-events: none;
 }
 
+.jumpin {
+    box-shadow: -5px 0px 5px 1px #0f0 !important;
+}
+
 .crown::before {
     display: inline-block;
     padding-right: 10px;

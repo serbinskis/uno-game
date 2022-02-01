@@ -760,13 +760,17 @@ function GetOnline(room) {
 function whoCanJumpIn(room, room_id, blocked_id) {
     for (const [player_id, value] of Object.entries(room.players)) {
         if (!value.left && (player_id != room.current_move) && (player_id != blocked_id)) { //Yes, I know, blocked_id may be undefinied, and, WHO CARES
+            var cards = [];
+
             for (const [card_id, value] of Object.entries(room.cards[player_id])) {
                 var card_color = value.color != "ANY" ? value.color : room.current_card.color;
                 if (card_color == room.current_card.color && value.type == room.current_card.type) {
-                    var clientSocket = GetPlayerSocket(room_id, player_id);
-                    if (clientSocket) { clientSocket.emit("can_jump_in"); }
+                    cards.push(card_id);
                 }
             }
+
+            var clientSocket = GetPlayerSocket(room_id, player_id);
+            if (clientSocket && cards.length > 0) { clientSocket.emit("can_jump_in", {cards: cards}); }
         }
     }
 }

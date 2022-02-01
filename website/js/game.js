@@ -72,8 +72,8 @@ socket.on("start", function(data) {
         return;
     }
 
-    $('#UNO_CARD')[0].remove();
-    $('#arrow')[0].style.visibility = null;
+    $("#UNO_CARD")[0].remove();
+    $("#arrow")[0].style.visibility = null;
     PutCard(data.current_card);
     SetPlaying(data.current_move);
 
@@ -119,8 +119,12 @@ socket.on("new_player", function(data) {
 
 
 //Enable cards for player when its posible to jump in
-socket.on("can_jump_in", function() {
+socket.on("can_jump_in", function(data) {
     $("#cards").removeClass("disabled");
+
+    for (const [index, card_id] of Object.entries(data.cards)) {
+        $(`#${card_id}`).addClass("jumpin");
+    }
 });
 
 
@@ -298,6 +302,10 @@ socket.on("kick", function(data) {
 //Set who is playing now
 function SetPlaying(uid) {
     //current_move = uid;
+
+    $(".card").each(function() {
+        $(this).removeClass("jumpin");
+    });
 
     if (uid == my_id) {
         $("#cards").removeClass("disabled");
