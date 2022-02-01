@@ -79,7 +79,7 @@ io.sockets.on("connection", socket => {
 
         //Create room if doesnt exist
         if (!rooms[data.invite]) {
-            rooms[data.invite] = CreateRoom(socket.uid, data.start_cards, data.max_players, data.max_cards, data.draw_to_match, data.can_stack_cards, data.can_jump_in);
+            rooms[data.invite] = CreateRoom(socket.uid, data.start_cards, data.max_players, data.max_cards, data.draw_to_match, data.can_stack_cards, data.can_jump_in, data.can_uno);
             var room = rooms[data.invite]; //Get room
         } else {
             var room = rooms[data.invite]; //Get room
@@ -381,8 +381,8 @@ io.sockets.on("connection", socket => {
             count: player.count, //What is new count
         }
 
-        //If it should be uno
-        if (player.count == 1) {
+        //If it should be uno button
+        if (player.count == 1 && room.can_uno) {
             room.uno = socket.uid;
             data.uno = socket.uid;
         }
@@ -641,7 +641,7 @@ async function ResetRoom(room_id) {
     }
 
     //Recreate room
-    var new_room = CreateRoom(room.owner, room.start_cards, room.max_players, room.max_cards, room.draw_to_match, room.can_stack_cards, room.can_jump_in);
+    var new_room = CreateRoom(room.owner, room.start_cards, room.max_players, room.max_cards, room.draw_to_match, room.can_stack_cards, room.can_jump_in, room.can_uno);
     new_room.players = room.players;
     new_room.started = true;
     new_room.current_move = players[RandomRange(0, players.length-1)]; //Select random player
@@ -698,7 +698,7 @@ async function CreateAvatar(buffer) {
 
 
 //Create room for player with settings
-function CreateRoom(owner, start_cards, max_players, max_cards, draw_to_match, can_stack_cards, can_jump_in) {
+function CreateRoom(owner, start_cards, max_players, max_cards, draw_to_match, can_stack_cards, can_jump_in, can_uno) {
     return {
         owner: owner,
         stack: 0,
@@ -714,6 +714,7 @@ function CreateRoom(owner, start_cards, max_players, max_cards, draw_to_match, c
         draw_to_match: (draw_to_match != null) ? ((typeof draw_to_match === 'string') ? (draw_to_match == "ON") : draw_to_match) : config.DRAW_TO_MATCH,
         can_stack_cards: (can_stack_cards != null) ? ((typeof can_stack_cards === 'string') ? (can_stack_cards == "ON") : can_stack_cards) : config.CAN_STACK_CARDS,
         can_jump_in: (can_jump_in != null) ? ((typeof can_jump_in === 'string') ? (can_jump_in == "ON") : can_jump_in) : config.CAN_JUMP_IN,
+        can_uno: (can_uno != null) ? ((typeof can_uno === 'string') ? (can_uno == "ON") : can_uno) : config.CAN_UNO,
     }
 }
 

@@ -152,7 +152,7 @@ body {
 #settings-container #settings-wrapper {
     position: relative;
     width: 100%;
-    height: calc(100% - 80px);
+    height: calc(100% - 74px);
     padding: 20px 10px 0px 40px;
     margin-left: -10px;
     overflow-y: scroll;

@@ -49,6 +49,7 @@ $('#connect').click(function(e) {
                          draw_to_match: $("#draw-to-match").children(".setting-state")[0].innerHTML,
                          can_stack_cards: $("#stack-cards").children(".setting-state")[0].innerHTML,
                          can_jump_in: $("#jump-in").children(".setting-state")[0].innerHTML,
+                         can_uno: $("#can-uno").children(".setting-state")[0].innerHTML,
     });
 });
 
@@ -68,6 +69,7 @@ $("#login-container #setting-close").click(function() {
     SetCookie("draw_to_match", $("#draw-to-match").children(".setting-state")[0].innerHTML, DEFAULT_SAVE_TIME);
     SetCookie("stack_cards", $("#stack-cards").children(".setting-state")[0].innerHTML, DEFAULT_SAVE_TIME);
     SetCookie("jump_in", $("#jump-in").children(".setting-state")[0].innerHTML, DEFAULT_SAVE_TIME);
+    SetCookie("can_uno", $("#can-uno").children(".setting-state")[0].innerHTML, DEFAULT_SAVE_TIME);
 });
 
 
@@ -100,6 +102,9 @@ $(".arrow-left").click(function(e) {
             state.innerHTML = (state.innerHTML == "ON") ? "OFF" : "ON";
             break;
         case "jump-in":
+            state.innerHTML = (state.innerHTML == "ON") ? "OFF" : "ON";
+            break;
+        case "can-uno":
             state.innerHTML = (state.innerHTML == "ON") ? "OFF" : "ON";
             break;
     }
@@ -135,6 +140,9 @@ $(".arrow-right").click(function(e) {
             state.innerHTML = (state.innerHTML == "ON") ? "OFF" : "ON";
             break;
         case "jump-in":
+            state.innerHTML = (state.innerHTML == "ON") ? "OFF" : "ON";
+            break;
+        case "can-uno":
             state.innerHTML = (state.innerHTML == "ON") ? "OFF" : "ON";
             break;
     }
@@ -190,5 +198,9 @@ socket.on("settings", function(data) {
 
     if (GetCookie("jump_in") != "") {
         $("#jump-in").children(".setting-state")[0].innerHTML = GetCookie("jump_in");
+    }
+
+    if (GetCookie("can_uno") != "") {
+        $("#can-uno").children(".setting-state")[0].innerHTML = GetCookie("can_uno");
     }
 });

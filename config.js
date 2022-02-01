@@ -3,7 +3,7 @@ module.exports = {
     DIRECTION_FORWARD: 1, //Normal direction, dont change this
     DIRECTION_REVERSE: -1, //Reverse direction, dont change this
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts (seconds)
-    TURN_DELAY: Math.round(1.5*1000), //Delay between turns (ms)
+    TURN_DELAY: Math.round(2.0*1000), //Delay between turns (ms)
     UNO_CARD_AMOUNT: 2, //Amount of cards to take when someone presses uno
     MAX_IMAGE_SIZE: 1024*1024*5, //Maximum size of image in bytes
 
@@ -31,6 +31,7 @@ module.exports = {
     DRAW_TO_MATCH: true, //Draw cards until get playable one
     CAN_STACK_CARDS: true, //Can put same cards at one turn
     CAN_JUMP_IN: true, //Can jump in when cards are same
+    CAN_UNO: true, //Can do uno when 1 card
 
     error_codes: {
         "200": "OK",
