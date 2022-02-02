@@ -261,8 +261,7 @@ socket.on("place_card", function(data) {
 
     //Set uno for specific player
     if (data.player_id && data.uno) {
-        var left = (200+RandomRange(0, 150))*(RandomRange(1, 2) == 1 ? -1 : 1);
-        $("#uno-wrapper")[0].style = `left: calc(50% + ${left}px); top: calc(50% + ${RandomRange(-100, 100)}px);`
+        $("#uno-wrapper")[0].style = `left: calc(50% + ${data.uno_x}px); top: calc(50% + ${data.uno_y}px);`
         $("#uno")[0].player_id = data.player_id;
         $("#uno")[0].style = "transform: scale(1);"
     } else {

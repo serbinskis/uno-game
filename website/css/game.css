@@ -657,7 +657,7 @@
     position: absolute;
     width: 220px;
     height: 190px;
-    left: calc(50% + 100px);
+    left: calc(50% + 200px);
     top: 50%;
     transform: translate(-50%, -50%) scale(.3);
 }

@@ -385,6 +385,8 @@ io.sockets.on("connection", socket => {
         if (player.count == 1 && room.can_uno) {
             room.uno = socket.uid;
             data.uno = socket.uid;
+            data.uno_x = (200+RandomRange(0, 150))*(RandomRange(1, 2) == 1 ? -1 : 1);
+            data.uno_y = RandomRange(-100, 100);
         }
 
         //Check if player won
