@@ -306,7 +306,7 @@ io.sockets.on("connection", socket => {
 
     //When placing card
     socket.on("place_card", data => {
-        if (!socket.room || !socket.uid || !data.id) { return; }
+        if (!socket.room || !socket.uid || !data?.id) { return; }
 
         //Get current room
         var room = rooms[socket.room];
@@ -438,7 +438,7 @@ io.sockets.on("connection", socket => {
 
     //When changing color
     socket.on("change_color", function(data) {
-        if (!socket.room || !socket.uid || !data.color) { return; }
+        if (!socket.room || !socket.uid || !data?.color) { return; }
 
         //Get current room
         var room = rooms[socket.room];
@@ -472,7 +472,7 @@ io.sockets.on("connection", socket => {
 
     //When changing color
     socket.on("save_card", function(data) {
-        if (!socket.room || !socket.uid || !data.id) { return; }
+        if (!socket.room || !socket.uid || !data?.id) { return; }
 
         //Get current room
         var room = rooms[socket.room];
@@ -540,7 +540,7 @@ io.sockets.on("connection", socket => {
 
     //Kick player
     socket.on("kick", data => {
-        if (!socket.room || !socket.uid) { return; }
+        if (!socket.room || !socket.uid || !data) { return; }
 
         //Get current room
         var room = rooms[socket.room];
