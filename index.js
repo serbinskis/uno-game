@@ -61,16 +61,14 @@ io.sockets.on("connection", socket => {
         //Check if socket is already connected to room
         if (socket.room) { return; }
 
-        //! - Check if username is string, it might be and integer or any other type
         //Check if username is normal
-        if (!data?.username || !data.username.match(/^.{2,24}$/)) {
+        if ((typeof data?.username !== 'string') || !data.username.match(/^.{2,24}$/)) {
             socket.emit("join", {code: 1004, message: config.error_codes[1004]});
             return;
         }
 
-        //! - Same as before
         //Check if invite is normal
-        if (!data?.invite || !data.invite.match(/^.[0-9a-z]{7,7}$/)) {
+        if ((typeof data?.invite !== 'string') || !data.invite.match(/^.[0-9a-z]{7,7}$/)) {
             socket.emit("join", {code: 1005, message: config.error_codes[1005]});
             return;
         }
