@@ -347,6 +347,7 @@
 .username {
     /* border: 2px solid purple; */
     cursor: url(../resources/arrow.png), auto;
+    font-weight: normal;
 }
 
 .count {
