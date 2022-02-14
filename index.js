@@ -73,7 +73,6 @@ io.sockets.on("connection", socket => {
             return;
         }
 
-        //!!! - Not checking data and types in CreateRoom
         //Create room if doesnt exist
         if (!rooms[data.invite]) {
             rooms[data.invite] = CreateRoom(socket.uid, data.start_cards, data.max_players, data.max_cards, data.draw_to_match, data.can_stack_cards, data.can_jump_in, data.can_uno);
