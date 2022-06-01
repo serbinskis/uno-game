@@ -576,12 +576,6 @@ process.on("SIGINT", function() {
 });
 
 
-//Wait function
-async function Wait(milleseconds) {
-	return new Promise(resolve => setTimeout(resolve, milleseconds))
-}
-
-
 //Yonki sponky stolen code is now my and modified xD
 timer = {
     timers: {},
@@ -796,6 +790,12 @@ function canPlayCard(room, card) {
     }
 
     return true;
+}
+
+
+//Wait function
+async function Wait(milleseconds) {
+	return new Promise(resolve => setTimeout(resolve, milleseconds))
 }
 
 
