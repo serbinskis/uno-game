@@ -2,3 +2,5 @@ node_modules/
 website/avatars/
 package-lock.json
 test.js
+dev
+dist

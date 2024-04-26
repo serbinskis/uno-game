@@ -2,16 +2,28 @@
   "name": "uno-game",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.cjs",
   "scripts": {
-    "start": "node index.js"
+    "start": "cd dist & node index.js",
+    "build": "copyfiles -u 1 src/website/** dist & tsc --outDir dist",
+    "test": "rimraf dev & copyfiles -u 1 src/website/** dev & tsc --outDir dev & cd dev & node index.js"
   },
   "author": "WobbyChip",
   "license": "ISC",
   "dependencies": {
     "canvas": "^2.6.1",
     "express": "^4.17.1",
+    "node-schedule": "^2.1.1",
     "socket.io": "^3.0.5",
-    "uuid": "^8.3.2"
+    "wobbychip-utils": "*"
+  },
+  "engines": {
+    "node": "16.15.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "copyfiles": "^2.4.1",
+    "rimraf": "^4.1.2",
+    "typescript": "^4.9.4"
   }
 }
