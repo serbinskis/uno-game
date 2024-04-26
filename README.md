@@ -2,12 +2,9 @@
 
 This repository contains the source code for a web-based UNO game. UNO is a popular card game where players take turns matching cards in their hands with the current card shown on top of the deck by either color or number. The goal is to be the first player to get rid of all the cards in their hand.
 
-![image](https://i.imgur.com/ethjMpJ.png)
-![image](https://i.imgur.com/1wz35VR.png)
 ![image](https://i.imgur.com/BLz9t7Y.png)
-![image](https://i.imgur.com/2t5lb8B.png)
 
-Features
+## Features
 
 - Player Customization: Players can customize their username and avatar.
 - Game Settings: Various game settings such as starting cards, maximum players, player time, etc., can be adjusted.
@@ -17,7 +14,7 @@ Features
 - Winner Display: When a player wins the game, a visually appealing winner display is shown.
 - UNO Indicator: An indicator shows when a player has only one card left, as per UNO rules.
 
-Setup
+## Setup
 
 To set up the UNO game locally, follow these steps:
 
@@ -25,7 +22,7 @@ To set up the UNO game locally, follow these steps:
 2. Navigate to the project directory.
 3. Run `npm build` and `npm start`.
 
-Usage
+## Usage
 
 1. Upon opening the game, players can customize their username and select an avatar.
 2. Players can adjust game settings by clicking on the settings icon.
@@ -34,7 +31,7 @@ Usage
 5. The game continues until one player successfully empties their hand of cards.
 6. The winner is displayed, and players have the option to play again or exit the game.
 
-Technologies Used
+## Technologies Used
 
 - HTML
 - CSS
