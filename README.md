@@ -33,7 +33,8 @@ To set up the UNO game locally, follow these steps:
 
 ## Technologies Used
 
+- NodeJS
+- Socket.io (for real-time communication)
+- JavaScript (including jQuery for DOM manipulation)
 - HTML
 - CSS
-- JavaScript (including jQuery for DOM manipulation)
-- Socket.io (for real-time communication)
