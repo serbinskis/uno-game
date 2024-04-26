@@ -2,7 +2,7 @@
 
 This repository contains the source code for a web-based UNO game. UNO is a popular card game where players take turns matching cards in their hands with the current card shown on top of the deck by either color or number. The goal is to be the first player to get rid of all the cards in their hand.
 
-![image](https://i.imgur.com/BLz9t7Y.png)
+![](https://i.imgur.com/BLz9t7Y.png)
 
 ## Features
 
