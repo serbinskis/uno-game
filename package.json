@@ -8,14 +8,14 @@
     "build": "copyfiles -u 1 src/website/** dist & tsc --outDir dist",
     "test": "rimraf dev & copyfiles -u 1 src/website/** dev & tsc --outDir dev & cd dev & node index.js"
   },
-  "author": "WobbyChip",
+  "author": "Serbinskis",
   "license": "ISC",
   "dependencies": {
-    "canvas": "^2.6.1",
     "express": "^4.17.1",
     "node-schedule": "^2.1.1",
-    "socket.io": "^3.0.5",
-    "wobbychip-utils": "*"
+    "serbinskis-utils": "^1.0.79",
+    "sharp": "^0.34.5",
+    "socket.io": "^3.0.5"
   },
   "engines": {
     "node": "16.15.1"

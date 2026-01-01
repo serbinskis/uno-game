@@ -1,9 +1,9 @@
 import fs from 'fs';
 import config from './config';
 import crypto from 'crypto';
-import Canvas from 'canvas';
-import wutils from 'wobbychip-utils';
-import wtimer from 'wobbychip-utils/timer';
+import sharp from 'sharp'
+import sutils from 'serbinskis-utils';
+import stimer from 'serbinskis-utils/timer';
 import { Server, Socket } from 'socket.io';
 import { UnoPlayer } from './player';
 import { UnoEvents } from './events';
@@ -48,10 +48,10 @@ export class UnoGame {
         this.opts = opts;
         this.room_id = opts.room_id;
         this.owner_id = opts.owner_id;
-        this.start_cards = wutils.between(opts.start_cards, config.START_CARDS.minimum, config.START_CARDS.maximum) ? opts.start_cards : config.START_CARDS.default;
-        this.max_players = wutils.between(opts.max_players, config.MAX_PLAYERS.minimum, config.MAX_PLAYERS.maximum) ? opts.max_players : config.MAX_PLAYERS.default;
-        this.max_cards = wutils.between(opts.max_cards, config.MAX_CARDS.minimum, config.MAX_CARDS.maximum) ? opts.max_cards : config.MAX_CARDS.default;
-        this.player_time = wutils.between(opts.player_time, config.PLAYER_TIME.minimum, config.PLAYER_TIME.maximum) ? opts.player_time : config.PLAYER_TIME.default;
+        this.start_cards = sutils.between(opts.start_cards, config.START_CARDS.minimum, config.START_CARDS.maximum) ? opts.start_cards : config.START_CARDS.default;
+        this.max_players = sutils.between(opts.max_players, config.MAX_PLAYERS.minimum, config.MAX_PLAYERS.maximum) ? opts.max_players : config.MAX_PLAYERS.default;
+        this.max_cards = sutils.between(opts.max_cards, config.MAX_CARDS.minimum, config.MAX_CARDS.maximum) ? opts.max_cards : config.MAX_CARDS.default;
+        this.player_time = sutils.between(opts.player_time, config.PLAYER_TIME.minimum, config.PLAYER_TIME.maximum) ? opts.player_time : config.PLAYER_TIME.default;
         this.draw_to_match = (opts.draw_to_match != null) ? ((typeof opts.draw_to_match === 'string') ? (opts.draw_to_match == 'ON') : opts.draw_to_match) : config.DRAW_TO_MATCH;
         this.can_stack_cards = (opts.can_stack_cards != null) ? ((typeof opts.can_stack_cards === 'string') ? (opts.can_stack_cards == 'ON') : opts.can_stack_cards) : config.CAN_STACK_CARDS;
         this.can_jump_in = (opts.can_jump_in != null) ? ((typeof opts.can_jump_in === 'string') ? (opts.can_jump_in == 'ON') : opts.can_jump_in) : config.CAN_JUMP_IN;
@@ -65,19 +65,22 @@ export class UnoGame {
         try {
             const hex = crypto.createHash('sha1').update(buffer).digest('hex');
             if (fs.existsSync(`${config.AVATARS_DIR}/${hex}.png`)) { return hex; }
-
-            const frameImage = await Canvas.loadImage('website/resources/frame.png');
-            const avatarImage = await Canvas.loadImage(buffer);
-            const canvas = Canvas.createCanvas(frameImage.width, frameImage.height);
-            const ctx = canvas.getContext('2d');
-
-            ctx.fillStyle = 'black';
-            ctx.fillRect(13, 13, 104, 104);
-            ctx.drawImage(avatarImage, 13, 13, 104, 104);
-            ctx.drawImage(frameImage, 0, 0);
-
             if (!fs.existsSync(config.AVATARS_DIR)) { fs.mkdirSync(config.AVATARS_DIR); }
-            fs.writeFileSync(`${config.AVATARS_DIR}/${hex}.png`, canvas.toBuffer());
+
+            const frameBuffer = await fs.promises.readFile('website/resources/frame.png');
+            const frameMeta = await sharp(frameBuffer).metadata();
+            const avatarImage = await sharp(buffer).resize(104, 104).toBuffer();
+
+            await sharp({
+                create: {
+                    width: frameMeta.width!, height: frameMeta.height!,
+                    channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 }
+                }
+            }).composite([
+                { input: avatarImage, top: 13, left: 13 },
+                { input: frameBuffer, top: 0, left: 0 }
+            ]).png().toFile(`${config.AVATARS_DIR}/${hex}.png`);
+
             return hex;
         } catch(e) {
             return null;
@@ -85,11 +88,11 @@ export class UnoGame {
     }
 
     static generateCard(includeSpecial: boolean): { color: string; type: string; } {
-        if (includeSpecial && (wutils.randomRange(1, 2) == 2)) {
-            return config.cards.special[wutils.randomRange(0, config.cards.special.length-1)];
+        if (includeSpecial && (sutils.randomRange(1, 2) == 2)) {
+            return config.cards.special[sutils.randomRange(0, config.cards.special.length-1)];
         }
     
-        return config.cards.standart[wutils.randomRange(0, config.cards.standart.length-1)];
+        return config.cards.standart[sutils.randomRange(0, config.cards.standart.length-1)];
     }
 
     static getRoom(arg0: Socket | string): UnoGame {
@@ -102,8 +105,8 @@ export class UnoGame {
 
     deleteRoom(): void {
         this.deleted = true;
-        if (this.turn_delay) { wtimer.stop(this.turn_delay); }
-        if (this.player_delay) { wtimer.stop(this.player_delay); }
+        if (this.turn_delay) { stimer.stop(this.turn_delay); }
+        if (this.player_delay) { stimer.stop(this.player_delay); }
         delete UnoGame.games[this.room_id];
     }
 
@@ -112,7 +115,7 @@ export class UnoGame {
         if (!this.cards[player_id]) { this.cards[player_id] = {} }
 
         for (var i = 0; i < this.start_cards; i++) {
-            this.cards[player_id][wutils.uuidv4(true)] = UnoGame.generateCard(includeSpecial);
+            this.cards[player_id][sutils.uuidv4(true)] = UnoGame.generateCard(includeSpecial);
         }
 
         this.getPlayer(player_id).setCardCount(this.start_cards);
@@ -317,11 +320,11 @@ export class UnoGame {
 
     async resetRoom(): Promise<void> {
         //Stop timers if they are running
-        if (this.turn_delay) { wtimer.stop(this.turn_delay); }
-        if (this.player_delay) { wtimer.stop(this.player_delay); }
+        if (this.turn_delay) { stimer.stop(this.turn_delay); }
+        if (this.player_delay) { stimer.stop(this.player_delay); }
 
         //This amount before winner screen appears (500) + wait little more (1000)
-        await wutils.Wait(config.NEXT_GAME_TIMEOUT*1000 + 1500);
+        await sutils.Wait(config.NEXT_GAME_TIMEOUT*1000 + 1500);
         if (this.deleted) { return; }
 
         //Get list of players to select random for first move
@@ -333,7 +336,7 @@ export class UnoGame {
         new_room.players_json = this.players_json;
         new_room.setStarted(true);
         new_room.setOwner(this.getOwner());
-        new_room.setCurrentMove(players[wutils.randomRange(0, players.length-1)].getId()); //Select random player
+        new_room.setCurrentMove(players[sutils.randomRange(0, players.length-1)].getId()); //Select random player
         new_room.setCurrentCard(UnoGame.generateCard(false)); //Generate first card
 
         //Generate cards for players and send info
@@ -364,10 +367,10 @@ export class UnoGame {
     }
 
     startTurnDelay(player_id: string, next_by: number) {
-        if (this.turn_delay) { wtimer.stop(this.turn_delay); }
+        if (this.turn_delay) { stimer.stop(this.turn_delay); }
 
         //Delay next move after selecting color
-        this.turn_delay = wtimer.start(() => {
+        this.turn_delay = stimer.start(() => {
             this.current_move = this.nextPlayer(player_id, next_by); //Get and set next player
             this.turn_delay = null; //Clear delay variable
             this.uno_id = null; //Clear uno variable
@@ -394,13 +397,13 @@ export class UnoGame {
         //when player is stacking the turn dealy is active which prevents
         //taking cards, so timer by default when taking cards will not work
 
-        if (this.player_delay) { wtimer.stop(this.player_delay); }
+        if (this.player_delay) { stimer.stop(this.player_delay); }
         this.player_delay_date = new Date();
 
-        this.player_delay = wtimer.start(() => {
+        this.player_delay = stimer.start(() => {
             this.skipped = true;
             var socket: Socket = this.getPlayer(this.current_move).getSocket();
-            var color = config.colors[wutils.randomRange(0, config.colors.length-1)];
+            var color = config.colors[sutils.randomRange(0, config.colors.length-1)];
 
             var isChoosingColor = this.isChoosingColor();
             var choosingId = this.getChoosingId();
@@ -412,14 +415,14 @@ export class UnoGame {
         }, this.player_time*1000 + 500);
 
         var player = this.getPlayer(this.current_move);
-        if (player.isDisconnected()) { wtimer.finish(this.player_delay); }
-        if ((this.player_time <= 0) && !player.isDisconnected()) { wtimer.stop(this.player_delay); }
+        if (player.isDisconnected()) { stimer.finish(this.player_delay); }
+        if ((this.player_time <= 0) && !player.isDisconnected()) { stimer.stop(this.player_delay); }
     }
 
     startPlayerDisconnect(player_id: string) {
         //Some weird error in here
         var player: UnoPlayer = this.getPlayer(player_id);
-        player.disconnect_delay = wtimer.start(() => {
+        player.disconnect_delay = stimer.start(() => {
             if (this.deleted) { return; }
             player.setLeft(true);
             this.players_json[player_id].left = true;
@@ -428,7 +431,7 @@ export class UnoGame {
     }
 
     stopPlayerDisconnect(player_id: string) {
-        wtimer.stop(this.getPlayer(player_id).disconnect_delay);
+        stimer.stop(this.getPlayer(player_id).disconnect_delay);
     }
 
     nextPlayer(player_id: string, by: number): string {

@@ -1,5 +1,5 @@
-import wutils from 'wobbychip-utils';
-import wtimer from 'wobbychip-utils/timer';
+import sutils from 'serbinskis-utils';
+import stimer from 'serbinskis-utils/timer';
 import config from '../config';
 import { Server, Socket } from 'socket.io';
 import { UnoPlayer } from '../player';
@@ -41,7 +41,7 @@ export class EventPlaceCard {
             room.startPlayerTimer();
             room.emit('next_move', { next_move: player.getId(), player_time: room.getPlayerTime(), jumped_in: room.getCurrentMove() }); //If someone jumped in then change move to them
             room.setCurrentMove(player.getId()); //Change current move to new player
-            wtimer.stop(room.getTurnDelay()); //Stop delay, and clear it
+            stimer.stop(room.getTurnDelay()); //Stop delay, and clear it
             room.setTurnDelay(null); //New delay will be created bellow
         }
 
@@ -59,8 +59,8 @@ export class EventPlaceCard {
         if ((player.getCardCount() == 1) && room.canUno()) {
             room.setUno(player.getId());
             data.uno_id = player.getId();
-            data.uno_x = (200+wutils.randomRange(0, 150))*(wutils.randomRange(1, 2) == 1 ? -1 : 1);
-            data.uno_y = wutils.randomRange(-100, 100);
+            data.uno_x = (200+sutils.randomRange(0, 150))*(sutils.randomRange(1, 2) == 1 ? -1 : 1);
+            data.uno_y = sutils.randomRange(-100, 100);
         }
 
         //Check if player won
@@ -90,13 +90,13 @@ export class EventPlaceCard {
 
         //If selecting color, clear delay
         if (pickcolor) {
-            wtimer.stop(room.getTurnDelay());
+            stimer.stop(room.getTurnDelay());
             return room.setTurnDelay(null);
         }
 
         //Reset timer every time player stack their card
         if (room.getTurnDelay()) {
-            return wtimer.change(room.getTurnDelay(), config.TURN_DELAY);
+            return stimer.change(room.getTurnDelay(), config.TURN_DELAY);
         }
 
         //Start timer between next player will get his turn

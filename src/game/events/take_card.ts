@@ -1,4 +1,4 @@
-import wutils from 'wobbychip-utils';
+import sutils from 'serbinskis-utils';
 import { Server, Socket } from 'socket.io';
 import { UnoGame } from '../game';
 import { UnoPlayer } from '../player';
@@ -14,7 +14,7 @@ export class EventTakeCard {
         var cards = {}
 
         while ((take_count != 0) && (player.getCardCount() < room.getMaxCards())) {
-            var card_id = wutils.uuidv4(true); //Generate uid
+            var card_id = sutils.uuidv4(true); //Generate uid
             var card = UnoGame.generateCard(true); //Generate card
             if (!can_play_card_after) { can_play_card_after = room.canPlayCard(card)[0]; }
 

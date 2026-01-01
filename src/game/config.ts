@@ -1,5 +1,6 @@
 export default {
-    PORT: 81, //Port
+    HTTP_PORT: 81,
+    HTTPS_PORT: 8444,
     DIRECTION_FORWARD: 1, //Normal direction, dont change this
     DIRECTION_REVERSE: -1, //Reverse direction, dont change this
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts (seconds)

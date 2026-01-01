@@ -1,4 +1,4 @@
-import wutils from 'wobbychip-utils';
+import sutils from 'serbinskis-utils';
 import { Server, Socket } from 'socket.io';
 import { UnoGame } from '../game';
 import { UnoPlayer } from '../player';
@@ -11,7 +11,7 @@ export class EventStart {
         //Start game and set random player as first
         var players: UnoPlayer[] = room.getPlayers().filter((e) => e.isOnline(true));
         room.setStarted(true);
-        room.setCurrentMove(players[wutils.randomRange(0, players.length-1)].getId()); //Select random player
+        room.setCurrentMove(players[sutils.randomRange(0, players.length-1)].getId()); //Select random player
         room.setCurrentCard(UnoGame.generateCard(false)); //Generate first card
 
         //Generate cards for players
