@@ -42,7 +42,6 @@ export class UnoGame {
     can_uno: boolean = config.CAN_UNO;
     can_rejoin: boolean = config.CAN_REJOIN;
 
-
     constructor(io: Server, opts: any) {
         this.io = io;
         this.opts = opts;
