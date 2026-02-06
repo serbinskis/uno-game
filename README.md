@@ -20,7 +20,7 @@ To set up the UNO game locally, follow these steps:
 
 1. Clone this repository to your local machine using `git clone https://github.com/serbinskis/uno-game`.
 2. Navigate to the project directory.
-3. Run `npm build` and `npm start`.
+3. Run `npm run build` and `npm run start`.
 
 ## Usage
 
