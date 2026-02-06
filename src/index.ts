@@ -4,7 +4,7 @@ import https from 'https';
 import express from 'express';
 import socketio from 'socket.io';
 import sutils from 'serbinskis-utils';
-import config from './game/config.js';
+import config from './config.js';
 import { scheduleJob, Range } from 'node-schedule';
 import { UnoEvents } from './game/events.js';
 
@@ -34,9 +34,9 @@ const io = new socketio.Server({ maxHttpBufferSize: config.MAX_IMAGE_SIZE });
 
 (async () => {
     var httpsOptions = {
-        cert: await new Promise((resolve) => fs.readFile('./../../-(CERTIFICATE)-/certificate.crt', (err, data) => resolve(data))) as Buffer,
-        ca: await new Promise((resolve) => fs.readFile('./../../-(CERTIFICATE)-/ca_bundle.crt', (err, data) => resolve(data))) as Buffer,
-        key: await new Promise((resolve) => fs.readFile('./../../-(CERTIFICATE)-/private.key', (err, data) => resolve(data))) as Buffer,
+        cert: await new Promise((resolve) => fs.readFile(`${config.CERTIFICATE_DIR}/certificate.crt`, (err, data) => resolve(data))) as Buffer,
+        ca: await new Promise((resolve) => fs.readFile(`${config.CERTIFICATE_DIR}/ca_bundle.crt`, (err, data) => resolve(data))) as Buffer,
+        key: await new Promise((resolve) => fs.readFile(`${config.CERTIFICATE_DIR}/private.key`, (err, data) => resolve(data))) as Buffer,
     }
 
     io.attach(http.createServer(app).listen(config.HTTP_PORT, () => console.log(`Listening on ${sutils.IPV4Address()}:${config.HTTP_PORT} (HTTP)`)));

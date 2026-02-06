@@ -1,4 +1,4 @@
-import config from '../config';
+import config from '../../config';
 import { Server, Socket } from 'socket.io';
 import { UnoGame } from '../game';
 import { UnoPlayer } from '../player';

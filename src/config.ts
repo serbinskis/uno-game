@@ -1,6 +1,7 @@
 export default {
     HTTP_PORT: 81,
     HTTPS_PORT: 8444,
+    CERTIFICATE_DIR: './../-(CERTIFICATE)-', // For HTTPS to work
     DIRECTION_FORWARD: 1, //Normal direction, dont change this
     DIRECTION_REVERSE: -1, //Reverse direction, dont change this
     NEXT_GAME_TIMEOUT: 10, //Time before next game starts (seconds)
@@ -9,7 +10,7 @@ export default {
     MAX_IMAGE_SIZE: 1024*1024*0.1, //Maximum size of image in bytes
     IMAGE_SAVE_TIME: 1000*60*60*24*30, //Maximum time for image saving, default 30 days
     REJOIN_TIME: 1000*60*2, //Time that player has to rejoin
-    AVATARS_DIR: './website/avatars',
+    AVATARS_DIR: './website/avatars', // Directory to store uploaded avatars
 
     //Maximum amount of players,
     MAX_PLAYERS: {

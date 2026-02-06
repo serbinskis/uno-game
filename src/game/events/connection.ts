@@ -1,4 +1,4 @@
-import config from '../config';
+import config from '../../config';
 import sutils from 'serbinskis-utils';
 import { Server, Socket } from 'socket.io';
 

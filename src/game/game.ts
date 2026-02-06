@@ -1,5 +1,5 @@
 import fs from 'fs';
-import config from './config';
+import config from '../config';
 import crypto from 'crypto';
 import sharp from 'sharp'
 import sutils from 'serbinskis-utils';

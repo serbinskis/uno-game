@@ -1,6 +1,6 @@
 import sutils from 'serbinskis-utils';
 import stimer from 'serbinskis-utils/timer';
-import config from '../config';
+import config from '../../config';
 import { Server, Socket } from 'socket.io';
 import { UnoPlayer } from '../player';
 import { UnoGame } from '../game';
