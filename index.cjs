@@ -10,7 +10,7 @@ process.on('uncaughtException', (e) => {
 
 var config = {
     ipAddress: process.env.DNS_IP_ADDRESS,
-    ipPort: 5000,
+    ipPort: process.env.DNS_IP_PORT,
     output: true,
     pause: false,
     verbose: false,
